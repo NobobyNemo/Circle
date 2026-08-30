@@ -407,7 +407,7 @@
     "undefined": {
       "id": "undefined",
       "title": "WheelOfFortune — колесо фортуны",
-      "content": "WheelOfFortune — фон на уровне MainWindow и компактная панель Fortune.\n\n- `Background-WF.png` перенесён из `WheelOfFortuneView` в корневой Grid `MainWindow.axaml`, с `Grid.ColumnSpan=2` и `IsVisible={Binding IsFortuneSelected}`. Фон теперь является фоном всего окна приложения только при открытой вкладке Fortune, а не частью Fortune Canvas.\n- В `MainViewModel` добавлено `IsFortuneSelected`, уведомляемое при изменении `SelectedTabIndex`.\n- Убран дублирующий Image-фон из `WheelOfFortuneView.axaml`.\n- `WheelOfFortuneView` получил `IsFortuneControlsExpanded` и `ToggleFortuneControlsCommand`. Заголовок и кнопка запуска остаются всегда; в TeamPick также остаются списки команд. При сворачивании скрываются селекторы, управление списками, список участников, режим игры и кнопки команд.\n- Добавлен `BoolToVerticalAlignmentConverter`: раскрытая панель растягивается, свернутая прижимается к низу и занимает только содержимое.\n- Внешний Margin FortuneView убран; фон доходит до краёв области MainWindow.\n- Сборка: `dotnet build Circle.Desktop/Circle.Desktop.csproj`, 0 ошибок, 5 прежних предупреждений.",
+      "content": "WheelOfFortune — фон на уровне MainWindow и компактная панель Fortune.\n\n- `Background-WF.png` перенесён из `WheelOfFortuneView` в корневой Grid `MainWindow.axaml`, с `Grid.ColumnSpan=2` и `IsVisible={Binding IsFortuneSelected}`. Фон теперь является фоном всего окна приложения только при открытой вкладке Fortune, а не частью Fortune Canvas.\n- В `MainViewModel` добавлено `IsFortuneSelected`, уведомляемое при изменении `SelectedTabIndex`.\n- Убран дублирующий Image-фон из `WheelOfFortuneView.axaml`.\n- `WheelOfFortuneView` получил `IsFortuneControlsExpanded` и `ToggleFortuneControlsCommand`. Заголовок и кнопка запуска остаются всегда; в TeamPick также остаются списки команд. При сворачивании скрываются селекторы, управление списками, список участников, режим игры и кнопки команд.\n- Добавлен `BoolToVerticalAlignmentConverter`: раскрытая панель растягивается, свернутая прижимается к низу и занимает только содержимое.\n- Внешний Margin FortuneView убран; фон доходит до краёв области MainWindow.\n- Для спрайта колеса в `WheelOfFortuneView.axaml.cs` центр вращения задан через `RenderTransformOrigin = (0.5, 0.5)` и `new RotateTransform(rotation)`. Это предотвращает вращение вокруг края/угла изображения и удерживает колесо на месте.\n- В режиме открытия кейса `RenderChest` использует `Assets/Case/Case_DownPart.png` и `Assets/Case/Case_UpperPart.png` как два слоя ленты. Оба спрайта масштабируются с исходным соотношением 1536:384; верхняя часть уезжает вверх, нижняя одновременно отъезжает вниз по `ChestOpenProgress`, освобождая центр для появления ленты.\n- Центральный маркер ленты: тонкая белая вертикальная линия и тонкое круглое кольцо вокруг центральной зоны. Кольцо — окружность диаметром 2.5 ячейки; ячейки за пределами кольца и их содержимое могут размываться.\n- В Plinko физические радиусы штырей и пружин уменьшены до `0.11` и `0.13` нормализованной ширины. `PlinkoBoardRenderer` использует радиусы объектов для размеров штырей и шара, пружины сохраняют вытянутую форму. Радиус шара в `PlinkoSceneFactory` равен `0.10`. Для Peg/Spring столкновение использует сумму `obstacle.Radius + ball.Radius`, а позиция после контакта выносится на суммарный радиус.\n- В Plinko крайние верхние ячейки исключены из выбора стартовой позиции: при `n > 2` `PlinkoSourceIndex` выбирается только в диапазоне `1..n-2`, а `PlinkoBoardRenderer` не отображает крайние source-карточки. При 1–2 вариантах используются все доступные ячейки.\n- В Plinko шар отображается спрайтом `Assets/WheelOfFortune/Plinko/ball.png` через статически загруженный `Bitmap` в `PlinkoBoardRenderer`; размеры спрайта сохраняют текущий размер физического шара, `Stretch.Uniform` сохраняет пропорции изображения.\n- Результирующие попапы получили фоновые спрайты: `Popup_Horizontal.png` используется для режимов Wheel и Plinko, `PopUp_Vertical.png` — для режима Strip/кейса. Фон размещается отдельным слоем под существующим текстом, изображением результата и кнопкой.\n- Нижние ячейки вариантов Plinko в `PlinkoBoardRenderer` уменьшены до квадратов с горизонтальными отступами: размер равен `min(0.78 * binWidth, 0.18 * canvasHeight)`, а увеличившаяся высота игровой области используется для штырей. Изображения и подписи центрируются внутри квадратных ячеек.\n- Изображения элементов в нижних квадратных ячейках Plinko теперь заполняют всю ячейку через `Stretch.UniformToFill`, вместо уменьшенного изображения с полями.\n- Сборка: `dotnet build Circle.Desktop/Circle.Desktop.csproj --no-restore` компилирует изменённый PlinkoBoardRenderer без новых ошибок, но общая сборка сейчас блокируется ошибкой `Program.cs(20): AppBuilder не содержит WithDeveloperTools`; остаются 5 прежних предупреждений.",
       "parentId": "ui",
       "tags": [
         "wheel-of-fortune",
@@ -415,7 +415,46 @@
         "background",
         "collapsible-panel",
         "navigation",
-        "ui"
+        "ui",
+        "rotation",
+        "sprite",
+        "case-opening",
+        "strip",
+        "reticle",
+        "blur-effect",
+        "plinko",
+        "physics",
+        "collision",
+        "result-popup",
+        "source-selection",
+        "ball-sprite",
+        "layout",
+        "full-cell-image"
+      ]
+    },
+    "avalonia-blur-effect": {
+      "id": "avalonia-blur-effect",
+      "title": "Avalonia BlurEffect",
+      "content": "В Avalonia 12 эффект размытия задаётся через `Avalonia.Media.BlurEffect` и свойство `Visual.Effect`, например `Effect = new BlurEffect { Radius = 2 }`. Эффект размывает содержимое конкретного визуального элемента; для выборочного блюра элементов Canvas нужно назначать его дочерним элементам, находящимся вне зоны фокуса.",
+      "parentId": "avalonia-performance",
+      "tags": [
+        "Avalonia",
+        "UI",
+        "blur",
+        "effects"
+      ]
+    },
+    "avalonia-drop-shadow-effect": {
+      "id": "avalonia-drop-shadow-effect",
+      "title": "Avalonia DropShadowEffect",
+      "content": "В Avalonia 12 `Avalonia.Media.DropShadowEffect` применяется к свойству `Visual.Effect`, добавляя размытую тень позади элемента. Основные свойства: `Color`, `BlurRadius`, `Opacity`, `OffsetX`, `OffsetY`. Для свечения под эффектом устанавливают `OffsetX=0`, `OffsetY=0`, `BlurRadius=10–15`, `Opacity=0.7–0.8`. Подходит для любого `Visual`, в отличие от `BoxShadow`, который работает только у `Border`/`ContentPresenter`.",
+      "parentId": "avalonia-performance",
+      "tags": [
+        "Avalonia",
+        "UI",
+        "DropShadowEffect",
+        "glow",
+        "effects"
       ]
     }
   }

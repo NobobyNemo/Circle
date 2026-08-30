@@ -92,7 +92,7 @@ public static class PlinkoSceneFactory
             objects.Add(new PlinkoGameObject(Kind.Separator, i, 1.0 + PlinkoPhysicsEngine.BucketDepth / 2,
                 width: 0.04, height: PlinkoPhysicsEngine.BucketDepth, index: i, isStatic: true));
 
-        var ball = new PlinkoGameObject(Kind.Ball, n / 2.0, 0, radius: 0.18, isDynamic: true);
+        var ball = new PlinkoGameObject(Kind.Ball, n / 2.0, 0, radius: 0.10, isDynamic: true);
         objects.Add(ball);
         return new PlinkoScene(objects, ball);
     }

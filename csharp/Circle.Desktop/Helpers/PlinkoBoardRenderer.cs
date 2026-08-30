@@ -4,6 +4,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Circle.Desktop.Models;
 using Circle.Desktop.ViewModels;
 
@@ -13,6 +14,8 @@ namespace Circle.Desktop.Helpers;
 public sealed class PlinkoBoardRenderer
 {
     private static readonly Color[] Palette = [Color.Parse("#334155"), Color.Parse("#1e293b")];
+    private static readonly Bitmap BallSprite = new(AssetLoader.Open(
+        new Uri("avares://Circle.Desktop/Assets/WheelOfFortune/Plinko/ball.png")));
     private readonly PlinkoSpriteFactory _sprites = new();
 
     public void Render(Canvas canvas, WheelOfFortuneViewModel vm)
@@ -31,20 +34,22 @@ public sealed class PlinkoBoardRenderer
         var sourceGap = Math.Max(4.0, height * 0.018);
         var sourceTop = Math.Max(4.0, (height * 0.16 - sourceCellSize) / 2.0);
         var boardTop = sourceTop + sourceCellSize + sourceGap;
-        // Buckets occupy the full visual bottom area.
-        var binHeight = height * 0.3;
+        // Bottom options are compact square cells, leaving more room for the board.
+        var binHeight = Math.Min(binWidth * 0.78, height * 0.18);
         var pegAreaHeight = height - boardTop - binHeight;
-        var rowGap = pegAreaHeight / (PlinkoPhysicsEngine.Rows + 1);
-        var pegRadius = Math.Max(2.0, Math.Min(binWidth * 0.11, rowGap * 0.26));
 
         foreach (var bin in bins)
         {
             var i = bin.Index;
             var left = (bin.X - 0.5) * binWidth;
+            var isSelectable = count <= 2 || (i > 0 && i < count - 1);
+            if (!isSelectable)
+                continue;
+
             var selected = i == ((vm.PlinkoSelectionOffset % count) + count) % count;
             var source = new Border { Width = sourceCellSize, Height = sourceCellSize, CornerRadius = new CornerRadius(6),
                 Background = new SolidColorBrush(Color.Parse(selected ? "#334155" : "#1e293b")),
-                BorderBrush = new SolidColorBrush(selected ? Color.Parse("#fde047") : Color.Parse("#475569")),
+                BorderBrush = new SolidColorBrush(Color.Parse(selected ? "#fde047" : "#475569")),
                 BorderThickness = new Thickness(selected ? 3 : 1), Opacity = vm.IsPlinkoSelecting || i == vm.PlinkoSourceIndex ? 1 : 0.9,
                 IsHitTestVisible = false };
             Canvas.SetLeft(source, left + (binWidth - sourceCellSize) / 2); Canvas.SetTop(source, sourceTop); canvas.Children.Add(source);
@@ -58,11 +63,16 @@ public sealed class PlinkoBoardRenderer
             switch (obj.Kind)
             {
                 case Kind.Peg:
-                    AddControl(canvas, _sprites.CreatePeg(pegRadius * 2), x - pegRadius, y - pegRadius);
+                    var pegVisualRadius = obj.Radius * binWidth;
+                    AddControl(canvas, _sprites.CreatePeg(pegVisualRadius * 2),
+                        x - pegVisualRadius, y - pegVisualRadius);
                     break;
                 case Kind.Spring:
-                    AddControl(canvas, _sprites.CreateSpring(pegRadius * 2.4, pegRadius * 1.4),
-                        x - pegRadius * 1.2, y - pegRadius * 0.7);
+                    var springVisualRadius = obj.Radius * binWidth;
+                    var springWidth = springVisualRadius * 2.4;
+                    var springHeight = springVisualRadius * 1.4;
+                    AddControl(canvas, _sprites.CreateSpring(springWidth, springHeight),
+                        x - springWidth / 2, y - springHeight / 2);
                     break;
                 case Kind.Wall:
                     AddRectangle(canvas, obj.Width * binWidth, pegAreaHeight, dividerBrush, (obj.X - obj.Width / 2) * binWidth, boardTop);
@@ -75,18 +85,25 @@ public sealed class PlinkoBoardRenderer
 
         foreach (var bin in bins)
         {
-            var left = (bin.X - 0.5) * binWidth;
+            var left = (bin.X - 0.5) * binWidth + (binWidth - binHeight) / 2.0;
             var top = boardTop + pegAreaHeight;
-            AddBucket(canvas, Math.Max(1, binWidth - 2), binHeight,
-                new SolidColorBrush(Palette[bin.Index % Palette.Length]), dividerBrush, left + 1, top);
+            AddBucket(canvas, binHeight, binHeight,
+                new SolidColorBrush(Palette[bin.Index % Palette.Length]), dividerBrush, left, top);
             var itemIndex = vm.GetPlinkoBinItemIndex(bin.Index);
             if (itemIndex >= 0 && itemIndex < vm.WheelItems.Count)
-                AddBinLabel(canvas, vm.WheelItems[itemIndex], left, top, binWidth, binHeight);
+                AddBinLabel(canvas, vm.WheelItems[itemIndex], left, top, binHeight, binHeight);
         }
 
         if (!vm.IsBallVisible) return;
-        var ballRadius = Math.Max(3.0, Math.Min(binWidth * 0.18, rowGap * 0.28));
-        var ball = _sprites.CreateBall(ballRadius * 2);
+        var ballRadius = Math.Max(3.0, scene.Ball.Radius * binWidth);
+        var ball = new Image
+        {
+            Source = BallSprite,
+            Width = ballRadius * 2,
+            Height = ballRadius * 2,
+            Stretch = Stretch.Uniform,
+            IsHitTestVisible = false
+        };
         var bucketTop = boardTop + pegAreaHeight;
         var bx = scene.Ball.X * binWidth;
         var by = scene.Ball.Y <= 1.0
@@ -131,7 +148,22 @@ public sealed class PlinkoBoardRenderer
     {
         if (item.HasImage)
         {
-            try { var size = Math.Min(binWidth * 0.7, binHeight * 0.6); var image = new Image { Source = new Bitmap(item.ImagePath!), Width = size, Height = size, Stretch = Stretch.Uniform, IsHitTestVisible = false }; Canvas.SetLeft(image, left + (binWidth - size) / 2); Canvas.SetTop(image, top + binHeight * 0.1); canvas.Children.Add(image); return; } catch { }
+            try
+            {
+                var image = new Image
+                {
+                    Source = new Bitmap(item.ImagePath!),
+                    Width = binWidth,
+                    Height = binHeight,
+                    Stretch = Stretch.UniformToFill,
+                    IsHitTestVisible = false
+                };
+                Canvas.SetLeft(image, left);
+                Canvas.SetTop(image, top);
+                canvas.Children.Add(image);
+                return;
+            }
+            catch { }
         }
         var label = new TextBlock { Text = item.DisplayName, Foreground = new SolidColorBrush(Colors.White), FontSize = Math.Max(8.0, Math.Min(binWidth * 0.2, binHeight * 0.22)), FontWeight = FontWeight.Bold, TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap, Width = Math.Max(1, binWidth - 4), MaxHeight = binHeight, ClipToBounds = true, IsHitTestVisible = false };
         Canvas.SetLeft(label, left + 2); Canvas.SetTop(label, top + binHeight * 0.15); canvas.Children.Add(label);

@@ -24,6 +24,7 @@ public partial class WheelOfFortuneView : UserControl
     private WheelListManagerWindow? _managerWindow;
     private readonly PlinkoBoardRenderer _plinkoRenderer = new();
     private bool _renderPending;
+    private Bitmap? _itemSprite;
 
     public WheelOfFortuneView()
     {
@@ -33,6 +34,15 @@ public partial class WheelOfFortuneView : UserControl
         WheelCanvas.SizeChanged += (_, _) => ScheduleRender();
         PlinkoCanvas.SizeChanged += (_, _) => ScheduleRender();
         StripCanvas.SizeChanged += (_, _) => ScheduleRender();
+
+        try
+        {
+            _itemSprite = new Bitmap(AssetLoader.Open(new Uri("avares://Circle.Desktop/Assets/WheelOfFortune/Case/item.png")));
+        }
+        catch
+        {
+            _itemSprite = null;
+        }
     }
 
     private void AttachViewModel()
@@ -141,7 +151,8 @@ public partial class WheelOfFortuneView : UserControl
             Width = wheelRadius * 2,
             Height = wheelRadius * 2,
             Stretch = Stretch.Uniform,
-            RenderTransform = new RotateTransform(rotation, wheelRadius, wheelRadius),
+            RenderTransform = new RotateTransform(rotation),
+            RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
             IsHitTestVisible = false
         };
         Canvas.SetLeft(wheelSprite, center + offsetX - wheelRadius);
@@ -625,6 +636,10 @@ public partial class WheelOfFortuneView : UserControl
 
         var cellBrushFallback = new SolidColorBrush(Palette[0 % Palette.Length]);
         var borderBrush = new SolidColorBrush(Color.Parse("#475569"));
+        var centerX = width / 2.0;
+        var reticleSize = cellFull * 2.5;
+        var reticleLeft = centerX - reticleSize / 2.0;
+        var reticleRight = centerX + reticleSize / 2.0;
 
         for (var i = firstVisibleIndex; i < firstVisibleIndex + visibleCells + 2; i++)
         {
@@ -638,23 +653,42 @@ public partial class WheelOfFortuneView : UserControl
             if (x > width + cellFull || x < -cellFull)
                 continue;
 
+            // Keep the 2.5-cell focus area sharp and soften the strip outside the ring.
+            var isInsideReticle = x + cellWidth >= reticleLeft && x <= reticleRight;
+            var outsideReticleEffect = isInsideReticle
+                ? null
+                : new BlurEffect { Radius = 2.5 };
+
             // Rarity color: precomputed in ViewModel, falls back to neutral palette
             var rarityHex = vm.GetStripRarityColor(i);
             var cellBrush = rarityHex is not null
                 ? new SolidColorBrush(Color.Parse(rarityHex))
                 : cellBrushFallback;
 
-            var cell = new Border
-            {
-                Width = cellWidth,
-                Height = cellHeight,
-                CornerRadius = new CornerRadius(8),
-                Background = cellBrush,
-                BorderBrush = borderBrush,
-                BorderThickness = new Thickness(1),
-                Opacity = stripOpacity,
-                IsHitTestVisible = false
-            };
+            // Cell background uses the item sprite if available; otherwise a colored border
+            var cell = _itemSprite is not null
+                ? (Control)new Image
+                {
+                    Source = _itemSprite,
+                    Width = cellWidth,
+                    Height = cellHeight,
+                    Stretch = Stretch.Fill,
+                    Opacity = stripOpacity,
+                    Effect = outsideReticleEffect,
+                    IsHitTestVisible = false
+                }
+                : new Border
+                {
+                    Width = cellWidth,
+                    Height = cellHeight,
+                    CornerRadius = new CornerRadius(8),
+                    Background = cellBrush,
+                    BorderBrush = borderBrush,
+                    BorderThickness = new Thickness(1),
+                    Opacity = stripOpacity,
+                    Effect = outsideReticleEffect,
+                    IsHitTestVisible = false
+                };
             Canvas.SetLeft(cell, x);
             Canvas.SetTop(cell, stripY);
             canvas.Children.Add(cell);
@@ -664,7 +698,7 @@ public partial class WheelOfFortuneView : UserControl
             {
                 try
                 {
-                    var imgSize = cellWidth * 0.7;
+                    var imgSize = cellWidth * 0.55;
                     var image = new Image
                     {
                         Source = new Bitmap(item.ImagePath!),
@@ -672,12 +706,12 @@ public partial class WheelOfFortuneView : UserControl
                         Height = imgSize,
                         Stretch = Stretch.Uniform,
                         Opacity = stripOpacity,
+                        Effect = outsideReticleEffect,
                         IsHitTestVisible = false
                     };
-                    Canvas.SetLeft(image, x + (cellWidth - imgSize) / 2);
-                    Canvas.SetTop(image, stripY + cellHeight * 0.12);
+                    Canvas.SetLeft(image, x + (cellWidth - imgSize) / 2.0);
+                    Canvas.SetTop(image, stripY + cellHeight * 0.18);
                     canvas.Children.Add(image);
-                    continue;
                 }
                 catch
                 {
@@ -685,34 +719,65 @@ public partial class WheelOfFortuneView : UserControl
                 }
             }
 
-            var fontSize = Math.Max(10.0, cellWidth * 0.16);
-            var label = new TextBlock
+            if (!item.HasImage)
             {
-                Text = item.DisplayName,
-                Foreground = new SolidColorBrush(Colors.White),
-                FontSize = fontSize,
-                FontWeight = FontWeight.Bold,
-                TextAlignment = TextAlignment.Center,
-                TextWrapping = TextWrapping.Wrap,
-                Width = cellWidth - 6,
-                MaxHeight = cellHeight * 0.7,
-                ClipToBounds = true,
+                var fontSize = Math.Max(10.0, cellWidth * 0.16);
+                var label = new TextBlock
+                {
+                    Text = item.DisplayName,
+                    Foreground = new SolidColorBrush(Colors.White),
+                    FontSize = fontSize,
+                    FontWeight = FontWeight.Bold,
+                    TextAlignment = TextAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap,
+                    Width = cellWidth - 6,
+                    MaxHeight = cellHeight * 0.45,
+                    ClipToBounds = true,
+                    Opacity = stripOpacity,
+                    Effect = outsideReticleEffect is null ? null : new BlurEffect { Radius = 2.5 },
+                    IsHitTestVisible = false
+                };
+                Canvas.SetLeft(label, x + 3);
+                Canvas.SetTop(label, stripY + cellHeight * 0.18);
+                canvas.Children.Add(label);
+            }
+
+            // Rarity glow strip under the image/text
+            var glowHeight = Math.Max(3.0, cellWidth * 0.04);
+            var glowWidth = cellWidth * 0.7;
+            var glowColor = rarityHex is not null
+                ? Color.Parse(rarityHex)
+                : Color.Parse(WheelOfFortuneViewModel.Rarities[0].Color);
+            var glowEffect = new DropShadowEffect
+            {
+                OffsetX = 0,
+                OffsetY = 0,
+                BlurRadius = 8,
+                Color = glowColor,
+                Opacity = 0.8
+            };
+            var glowStrip = new Border
+            {
+                Width = glowWidth,
+                Height = glowHeight,
+                CornerRadius = new CornerRadius(glowHeight / 2.0),
+                Background = new SolidColorBrush(glowColor),
                 Opacity = stripOpacity,
+                Effect = glowEffect,
                 IsHitTestVisible = false
             };
-            Canvas.SetLeft(label, x + 3);
-            Canvas.SetTop(label, stripY + cellHeight * 0.15);
-            canvas.Children.Add(label);
+            Canvas.SetLeft(glowStrip, x + (cellWidth - glowWidth) / 2.0);
+            Canvas.SetTop(glowStrip, stripY + cellHeight * 0.78);
+            canvas.Children.Add(glowStrip);
         }
 
-        // Center marker — vertical line + triangle top/bottom, height matches the strip
-        var centerX = width / 2.0;
-        var markerColor = new SolidColorBrush(Color.Parse("#fde047"));
+        // Center marker — barely visible gray ring marking the blur boundary
+        var markerColor = new SolidColorBrush(Colors.White);
         var markerOpacity = stripOpacity;
 
         var line = new Avalonia.Controls.Shapes.Rectangle
         {
-            Width = Math.Max(2.0, cellWidth * 0.04),
+            Width = Math.Max(1.0, cellWidth * 0.015),
             Height = cellHeight,
             Fill = markerColor,
             Opacity = markerOpacity,
@@ -722,36 +787,20 @@ public partial class WheelOfFortuneView : UserControl
         Canvas.SetTop(line, stripY);
         canvas.Children.Add(line);
 
-        // Top triangle pointing down
-        var triSize = cellWidth * 0.18;
-        var topTri = new Avalonia.Controls.Shapes.Polygon
+        var reticleBrush = new SolidColorBrush(Color.Parse("#4094a3b8"));
+        var reticle = new Avalonia.Controls.Shapes.Ellipse
         {
-            Points = new Points
-            {
-                new(centerX - triSize, stripY - triSize),
-                new(centerX + triSize, stripY - triSize),
-                new(centerX, stripY)
-            },
-            Fill = markerColor,
+            Width = reticleSize,
+            Height = reticleSize,
+            Fill = Brushes.Transparent,
+            Stroke = reticleBrush,
+            StrokeThickness = Math.Max(0.5, cellWidth * 0.006),
             Opacity = markerOpacity,
             IsHitTestVisible = false
         };
-        canvas.Children.Add(topTri);
-
-        // Bottom triangle pointing up
-        var bottomTri = new Avalonia.Controls.Shapes.Polygon
-        {
-            Points = new Points
-            {
-                new(centerX - triSize, stripY + cellHeight + triSize),
-                new(centerX + triSize, stripY + cellHeight + triSize),
-                new(centerX, stripY + cellHeight)
-            },
-            Fill = markerColor,
-            Opacity = markerOpacity,
-            IsHitTestVisible = false
-        };
-        canvas.Children.Add(bottomTri);
+        Canvas.SetLeft(reticle, centerX - reticleSize / 2.0);
+        Canvas.SetTop(reticle, stripY + (cellHeight - reticleSize) / 2.0);
+        canvas.Children.Add(reticle);
 
         // Chest overlay — shown while opening or when closed (before spin)
         RenderChest(canvas, vm, width, height, cellSize);
@@ -769,141 +818,61 @@ public partial class WheelOfFortuneView : UserControl
         var progress = vm.ChestOpenProgress;
         var reveal = vm.StripReveal;
 
-        // Chest dimensions — wider than a cell, fits the strip area
-        var chestW = cellSize * 2.2;
-        var chestH = cellSize * 1.6;
-        var chestX = (width - chestW) / 2.0;
-        var chestY = (height - chestH) / 2.0;
+        // Case dimensions follow the source sprite aspect ratio (1536x384 per part).
+        var caseWidth = Math.Min(cellSize * 2.2, width * 0.8);
+        var partHeight = caseWidth / 4.0;
+        var caseHeight = partHeight * 2.0;
+        var caseX = (width - caseWidth) / 2.0;
+        var caseY = (height - caseHeight) / 2.0;
 
-        // As the strip reveals, the chest fades and shrinks upward
+        // As the strip reveals, the case fades out.
         var fade = Math.Clamp(1.0 - reveal, 0.0, 1.0);
-        var liftY = chestY - reveal * chestH * 0.3;
+        var upperLift = progress * partHeight * 1.2;
+        var lowerDrop = progress * partHeight * 1.2;
 
-        var chestBody = new SolidColorBrush(Color.Parse("#78350f"));
-        var chestDark = new SolidColorBrush(Color.Parse("#451a03"));
-        var chestTrim = new SolidColorBrush(Color.Parse("#fbbf24"));
-        var chestLid = new SolidColorBrush(Color.Parse("#92400e"));
-
-        // Chest body (bottom half) — stays in place
-        var bodyH = chestH * 0.55;
-        var body = new Avalonia.Controls.Shapes.Rectangle
+        var body = new Image
         {
-            Width = chestW,
-            Height = bodyH,
-            Fill = chestBody,
-            Stroke = chestDark,
-            StrokeThickness = 2,
-            RadiusX = 6,
-            RadiusY = 6,
+            Source = new Bitmap(AssetLoader.Open(new Uri("avares://Circle.Desktop/Assets/Case/Case_DownPart.png"))),
+            Width = caseWidth,
+            Height = partHeight,
+            Stretch = Stretch.Fill,
             Opacity = fade,
             IsHitTestVisible = false
         };
-        Canvas.SetLeft(body, chestX);
-        Canvas.SetTop(body, chestY + chestH - bodyH);
+        Canvas.SetLeft(body, caseX);
+        Canvas.SetTop(body, caseY + partHeight + lowerDrop);
         canvas.Children.Add(body);
 
-        // Metal bands on the body
-        for (var band = 0; band < 2; band++)
+        var lid = new Image
         {
-            var bandY = chestY + chestH - bodyH + bodyH * (0.3 + band * 0.4);
-            var bandRect = new Avalonia.Controls.Shapes.Rectangle
-            {
-                Width = chestW,
-                Height = Math.Max(2.0, chestH * 0.04),
-                Fill = chestTrim,
-                Opacity = fade,
-                IsHitTestVisible = false
-            };
-            Canvas.SetLeft(bandRect, chestX);
-            Canvas.SetTop(bandRect, bandY);
-            canvas.Children.Add(bandRect);
-        }
-
-        // Lock plate on the front
-        var lockW = chestW * 0.12;
-        var lockH = chestH * 0.15;
-        var lockPlate = new Avalonia.Controls.Shapes.Rectangle
-        {
-            Width = lockW,
-            Height = lockH,
-            Fill = chestTrim,
-            Stroke = chestDark,
-            StrokeThickness = 1,
-            RadiusX = 3,
-            RadiusY = 3,
-            Opacity = fade * (1.0 - Math.Clamp(progress * 2, 0, 1)),
-            IsHitTestVisible = false
-        };
-        Canvas.SetLeft(lockPlate, chestX + (chestW - lockW) / 2);
-        Canvas.SetTop(lockPlate, chestY + chestH - bodyH * 0.5 - lockH / 2);
-        canvas.Children.Add(lockPlate);
-
-        // Lid (top half) — rotates open around its bottom edge (hinge at top of body)
-        var lidH = chestH * 0.45;
-        var lidHingeY = chestY + chestH - bodyH;
-        var lidHingeX = chestX;
-
-        // We simulate rotation by lifting the lid and tilting it back
-        // angle goes from 0 (closed) to ~110 degrees (fully open)
-        var angleDeg = progress * 110;
-        var angleRad = angleDeg * Math.PI / 180.0;
-
-        // Lid position: hinge stays, lid swings backward
-        var lidOffsetX = -lidH * 0.5 * Math.Sin(angleRad);
-        var lidOffsetY = -lidH * 0.5 * (1 - Math.Cos(angleRad)) - liftY + chestY;
-
-        var lid = new Avalonia.Controls.Shapes.Rectangle
-        {
-            Width = chestW,
-            Height = lidH,
-            Fill = chestLid,
-            Stroke = chestDark,
-            StrokeThickness = 2,
-            RadiusX = 6,
-            RadiusY = 6,
+            Source = new Bitmap(AssetLoader.Open(new Uri("avares://Circle.Desktop/Assets/Case/Case_UpperPart.png"))),
+            Width = caseWidth,
+            Height = partHeight,
+            Stretch = Stretch.Fill,
             Opacity = fade,
             IsHitTestVisible = false
         };
-
-        // Use RotateTransform around the bottom-center of the lid
-        var hingeRelX = chestW / 2;
-        var hingeRelY = lidH;
-        lid.RenderTransform = new RotateTransform(angleDeg, hingeRelX, hingeRelY);
-        Canvas.SetLeft(lid, lidHingeX + lidOffsetX);
-        Canvas.SetTop(lid, lidHingeY - lidH + lidOffsetY);
+        Canvas.SetLeft(lid, caseX);
+        Canvas.SetTop(lid, caseY - upperLift);
         canvas.Children.Add(lid);
 
-        // Trim band on the lid
-        var lidTrim = new Avalonia.Controls.Shapes.Rectangle
-        {
-            Width = chestW,
-            Height = Math.Max(2.0, chestH * 0.04),
-            Fill = chestTrim,
-            Opacity = fade,
-            IsHitTestVisible = false
-        };
-        lidTrim.RenderTransform = new RotateTransform(angleDeg, hingeRelX, hingeRelY);
-        Canvas.SetLeft(lidTrim, lidHingeX + lidOffsetX);
-        Canvas.SetTop(lidTrim, lidHingeY - lidH + lidH * 0.7 + lidOffsetY);
-        canvas.Children.Add(lidTrim);
-
         // "Open" hint text when idle
-        if (!vm.IsSpinning && progress < 0.01)
-        {
-            var hint = new TextBlock
-            {
-                Text = "🎁 Нажми «Открыть кейс!»",
-                Foreground = new SolidColorBrush(Color.Parse("#fbbf24")),
-                FontSize = Math.Max(12, cellSize * 0.14),
-                FontWeight = FontWeight.Bold,
-                TextAlignment = TextAlignment.Center,
-                Width = chestW * 1.6,
-                IsHitTestVisible = false
-            };
-            Canvas.SetLeft(hint, chestX + chestW / 2 - hint.Width / 2);
-            Canvas.SetTop(hint, chestY + chestH + cellSize * 0.1);
-            canvas.Children.Add(hint);
-        }
+        // if (!vm.IsSpinning && progress < 0.01)
+        // {
+        //     var hint = new TextBlock
+        //     {
+        //         Text = "🎁 Нажми «Открыть кейс!»",
+        //         Foreground = new SolidColorBrush(Color.Parse("#fbbf24")),
+        //         FontSize = Math.Max(12, cellSize * 0.14),
+        //         FontWeight = FontWeight.Bold,
+        //         TextAlignment = TextAlignment.Center,
+        //         Width = caseWidth * 1.6,
+        //         IsHitTestVisible = false
+        //     };
+        //     Canvas.SetLeft(hint, caseX + caseWidth / 2 - hint.Width / 2);
+        //     Canvas.SetTop(hint, caseY + caseHeight + cellSize * 0.1);
+        //     canvas.Children.Add(hint);
+        // }
     }
 
     private async void OnResultChanged(string? result)
