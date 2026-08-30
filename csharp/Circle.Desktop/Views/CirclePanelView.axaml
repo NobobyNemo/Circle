@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Circle.Desktop.Views.CirclePanelView"
+             xmlns:vm="using:Circle.Desktop.ViewModels"
+             x:DataType="vm:CirclePanelViewModel">
+    <ScrollViewer>
+        <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Selected Note:" Foreground="#9ca3af" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding SelectedKeyLabel}"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Foreground="#fde047" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Relative:" Foreground="#9ca3af" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding RelativeKeyLabel}"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Foreground="#fde047" />
+            </StackPanel>
+
+            <Border x:Name="ModesTableBorder"
+                    Background="#23272f"
+                    CornerRadius="10"
+                    Padding="0"
+                    HorizontalAlignment="Left">
+                <Grid x:Name="ModesGrid" />
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Circle.Desktop.ViewModels"
+             xmlns:v="using:Circle.Desktop.Views"
+             x:Class="Circle.Desktop.Views.ChordVoicingPopupView"
+             x:DataType="vm:ChordVoicingPopupViewModel">
+    <Border Background="#181e26"
+            BorderBrush="#4b5563"
+            BorderThickness="1"
+            CornerRadius="8"
+            Padding="12">
+        <StackPanel Spacing="8">
+            <TextBlock Text="{Binding ChordName}"
+                       Foreground="White"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding Voicings}"
+                      SelectedItem="{Binding SelectedVoicing}"
+                      MinWidth="150" />
+            <v:ChordDiagramView x:Name="Diagram" Width="250"
+                                 Height="190"
+                                 DataContext="{Binding}" />
+        </StackPanel>
+    </Border>
+</UserControl>

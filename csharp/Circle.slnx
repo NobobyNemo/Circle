@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Circle.Core/Circle.Core.csproj" />
+  <Project Path="Circle.Desktop/Circle.Desktop.csproj" DefaultStartup="true" />
+</Solution>

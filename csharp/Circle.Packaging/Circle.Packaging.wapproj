@@ -1,0 +1,45 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProjectGuid>{B3C4D5E6-F7A8-9012-BCDE-F12345678901}</ProjectGuid>
+    <OutputType>AppContainerExe</OutputType>
+    <UseNativeHelix>true</UseNativeHelix>
+    <AppxPackage>True</AppxPackage>
+    <AppxBundle>Never</AppxBundle>
+    <AppxBundlePlatforms>x64</AppxBundlePlatforms>
+    <AppxPackageDir>$(MSBuildProjectDirectory)\AppPackages</AppxPackageDir>
+    <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
+    <PackageCertificateKeyFile>..\Circle.Desktop\Circle.Desktop_TestCertificate.pfx</PackageCertificateKeyFile>
+    <PackageCertificatePassword Condition="'$(PackageCertificatePassword)' == ''">$(CIRCLE_PACKAGE_CERTIFICATE_PASSWORD)</PackageCertificatePassword>
+    <UapAppxPackageBuildMode>Sideloading</UapAppxPackageBuildMode>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFrameworkVersion>v10.0</TargetFrameworkVersion>
+    <MinTargetFrameworkVersion>10.0.19041.0</MinTargetFrameworkVersion>
+    <TargetPlatformVersion>10.0.19041.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <DefaultLanguage>en-US</DefaultLanguage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Circle.Desktop\Circle.Desktop.csproj">
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
+  </ItemGroup>
+
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(TargetFrameworkVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(TargetFrameworkVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets')" />
+
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsAppSDK\SingleProjectMSIX.targets" Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\WindowsAppSDK\SingleProjectMSIX.targets')" />
+
+</Project>

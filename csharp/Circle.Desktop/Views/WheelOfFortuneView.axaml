@@ -1,0 +1,423 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Circle.Desktop.ViewModels"
+             xmlns:m="using:Circle.Desktop.Models"
+             x:Class="Circle.Desktop.Views.WheelOfFortuneView"
+             x:DataType="vm:WheelOfFortuneViewModel">
+    <Grid ColumnDefinitions="*,340" Margin="0">
+        <!-- Wheel area with overlay -->
+        <Grid Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Canvas x:Name="WheelCanvas"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Background="Transparent"
+                    IsVisible="{Binding IsWheelMode}" />
+
+            <Canvas x:Name="PlinkoCanvas"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Background="Transparent"
+                    IsVisible="{Binding IsPlinkoMode}" />
+
+            <Canvas x:Name="StripCanvas"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Background="Transparent"
+                    IsVisible="{Binding IsStripMode}"
+                    ClipToBounds="True" />
+
+            <!-- Dimming overlay -->
+            <Border x:Name="DimOverlay"
+                    Background="#80000000"
+                    CornerRadius="12"
+                    IsVisible="False"
+                    Opacity="0" />
+
+            <!-- Result text overlay -->
+            <Border x:Name="ResultOverlay"
+                    IsVisible="False"
+                    Opacity="0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Padding="32,20"
+                    CornerRadius="16"
+                    Background="#1e293b"
+                    BorderBrush="#fde047"
+                    BorderThickness="2"
+                    Margin="0,0,0,60">
+                <TextBlock x:Name="ResultText"
+                           Text="{Binding Result}"
+                           FontSize="42"
+                           FontWeight="Bold"
+                           Foreground="#fde047"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"
+                           MaxWidth="400"
+                           TextWrapping="Wrap" />
+            </Border>
+
+            <!-- CS:GO-style strip result popup -->
+            <Border x:Name="StripResultPopup"
+                    IsVisible="{Binding IsStripResultPopupOpen}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Padding="0"
+                    CornerRadius="16"
+                    Background="#0f172a"
+                    BorderBrush="{Binding StripResultColor}"
+                    BorderThickness="4"
+                    Margin="0,0,0,40"
+                    MinWidth="280"
+                    MaxWidth="420">
+                <StackPanel Spacing="0">
+                    <!-- Rarity color bar at top -->
+                    <Border Background="{Binding StripResultColor}"
+                            Height="6"
+                            CornerRadius="16,16,0,0" />
+
+                    <Border Padding="28,24">
+                        <StackPanel Spacing="16">
+                            <TextBlock Text="🎉 Выпало!"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="#94a3b8"
+                                       HorizontalAlignment="Center" />
+
+                            <!-- Item image -->
+                            <Image x:Name="StripResultImage"
+                                   Source="{Binding StripResultImagePath, Converter={StaticResource PathToBitmapConverter}}"
+                                   IsVisible="{Binding StripResultImagePath, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                   MaxWidth="160"
+                                   MaxHeight="160"
+                                   Stretch="Uniform"
+                                   HorizontalAlignment="Center" />
+
+                            <!-- Item name -->
+                            <TextBlock Text="{Binding StripResultText}"
+                                       FontSize="24"
+                                       FontWeight="Bold"
+                                       Foreground="White"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       MaxWidth="360" />
+
+                            <!-- OK button -->
+                            <Button Content="OK"
+                                    Command="{Binding CloseStripResultPopupCommand}"
+                                    HorizontalAlignment="Center"
+                                    Padding="40,10"
+                                    FontSize="16"
+                                    FontWeight="Bold"
+                                    Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Controls area -->
+        <Border Grid.Column="1"
+                Background="{DynamicResource SettingsCardBackgroundBrush}"
+                BorderBrush="{DynamicResource SettingsBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="12"
+                Padding="20"
+                Margin="20,0,0,0"
+                VerticalAlignment="{Binding IsFortuneControlsExpanded, Converter={StaticResource FortunePanelVerticalAlignmentConverter}}">
+            <Grid RowDefinitions="Auto,Auto,*,Auto">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,12">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding GameTitle}"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource SettingsHeaderForegroundBrush}"
+                               VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1"
+                              SelectedIndex="{Binding GameTypeIndex}"
+                              MinWidth="120"
+                              VerticalAlignment="Center"
+                              IsVisible="{Binding IsFortuneControlsExpanded}">
+                        <ComboBoxItem>🎡 Колесо</ComboBoxItem>
+                        <ComboBoxItem>🔻 Плинко</ComboBoxItem>
+                        <ComboBoxItem>🎁 Лента</ComboBoxItem>
+                    </ComboBox>
+                    <Button Grid.Column="2"
+                            Content="☰"
+                            Command="{Binding ToggleFortuneControlsCommand}"
+                            ToolTip.Tip="Свернуть/развернуть панель управления"
+                            Padding="8,4"
+                            FontSize="15"
+                            Margin="6,0,0,0" />
+                </Grid>
+
+                <!-- List header with action buttons -->
+                <Grid Grid.Row="1"
+                      ColumnDefinitions="*,Auto,Auto,Auto"
+                      Margin="0,0,0,8"
+                      IsVisible="{Binding IsFortuneControlsExpanded}">
+                    <TextBlock Grid.Column="0"
+                               Text="{Binding ItemsHeader}"
+                               FontWeight="SemiBold"
+                               FontSize="14"
+                               Foreground="{DynamicResource SettingsHeaderForegroundBrush}"
+                               VerticalAlignment="Center" />
+                    <Button Grid.Column="1"
+                            Content="➕"
+                            Click="OnOpenAddItemPopup"
+                            Padding="8,4"
+                            FontSize="14"
+                            ToolTip.Tip="Добавить элемент"
+                            Margin="0,0,6,0" />
+                    <Button Grid.Column="2"
+                            Content="📂"
+                            Click="OnOpenListManager"
+                            Padding="8,4"
+                            FontSize="14"
+                            ToolTip.Tip="Управление списками"
+                            Margin="0,0,6,0" />
+                    <Button Grid.Column="3"
+                            x:Name="ClearWheelBtn"
+                            Content="🗑"
+                            Click="OnClearWheelClick"
+                            Padding="8,4"
+                            FontSize="14"
+                            ToolTip.Tip="Очистить колесо" />
+                </Grid>
+
+                <!-- Wheel items -->
+                <ScrollViewer Grid.Row="2"
+                              Margin="0,0,0,12"
+                              IsVisible="{Binding IsFortuneControlsExpanded}">
+                    <ItemsControl ItemsSource="{Binding WheelItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="m:WheelItem">
+                                <Border Background="{DynamicResource SettingsBackgroundBrush}"
+                                        CornerRadius="8"
+                                        Padding="8,6"
+                                        Margin="0,2">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Image Grid.Column="0"
+                                               Source="{Binding ImagePath, Converter={StaticResource PathToBitmapConverter}}"
+                                               Width="24" Height="24"
+                                               IsVisible="{Binding HasImage}"
+                                                   Stretch="Uniform" />
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding DisplayName}"
+                                                       VerticalAlignment="Center"
+                                                       Margin="6,0,0,0"
+                                                       Foreground="{DynamicResource SettingsHeaderForegroundBrush}" />
+                                            <Button Grid.Column="2"
+                                                    Content="✕"
+                                                    Padding="6,2"
+                                                    FontSize="12"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Foreground="{DynamicResource SettingsMutedForegroundBrush}"
+                                                    Command="{Binding $parent[ItemsControl].((vm:WheelOfFortuneViewModel)DataContext).RemoveWheelItemCommand}"
+                                                    CommandParameter="{Binding}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Spin + Game mode -->
+                <StackPanel Grid.Row="3" Spacing="8">
+                    <ComboBox SelectedIndex="{Binding GameModeIndex}"
+                              HorizontalAlignment="Stretch"
+                              FontSize="12"
+                              IsVisible="{Binding IsFortuneControlsExpanded}">
+                        <ComboBoxItem Content="🎯 Классика" />
+                        <ComboBoxItem Content="❌ На выбывание" />
+                        <ComboBoxItem Content="👥 Набери команду" />
+                    </ComboBox>
+
+                    <!-- Team pick options -->
+                    <StackPanel IsVisible="{Binding IsTeamPickMode}"
+                                Spacing="6"
+                                Margin="0,0,0,4">
+                        <!-- Team 1 -->
+                        <Border Background="{DynamicResource SettingsBackgroundBrush}"
+                                CornerRadius="8"
+                                Padding="8,6"
+                                MaxHeight="80">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="Команда 1"
+                                           FontWeight="SemiBold"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource SettingsHeaderForegroundBrush}" />
+                                <ItemsControl ItemsSource="{Binding Team1}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="m:WheelItem">
+                                            <TextBlock Text="{Binding DisplayName}"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource SettingsHeaderForegroundBrush}"
+                                                       Margin="0,1" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Team 2 -->
+                        <Border Background="{DynamicResource SettingsBackgroundBrush}"
+                                CornerRadius="8"
+                                Padding="8,6"
+                                MaxHeight="80"
+                                IsVisible="{Binding UseTwoTeams}">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="Команда 2"
+                                           FontWeight="SemiBold"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource SettingsHeaderForegroundBrush}" />
+                                <ItemsControl ItemsSource="{Binding Team2}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="m:WheelItem">
+                                            <TextBlock Text="{Binding DisplayName}"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource SettingsHeaderForegroundBrush}"
+                                                       Margin="0,1" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="4"
+                                    HorizontalAlignment="Right"
+                                    IsVisible="{Binding IsFortuneControlsExpanded}">
+                            <Button Content="⚙"
+                                    Click="OnOpenTeamSettingsPopup"
+                                    Padding="8,4"
+                                    FontSize="13"
+                                    ToolTip.Tip="Настройки команды"
+                                    Background="Transparent"
+                                    BorderThickness="1"
+                                    BorderBrush="{DynamicResource SettingsBorderBrush}" />
+                            <Button Content="📋"
+                                    Command="{Binding CopyTeamsCommand}"
+                                    Padding="8,4"
+                                    FontSize="13"
+                                    ToolTip.Tip="Копировать"
+                                    Background="Transparent"
+                                    BorderThickness="1"
+                                    BorderBrush="{DynamicResource SettingsBorderBrush}" />
+                            <Button Content="🗑"
+                                    Command="{Binding ClearTeamsCommand}"
+                                    Padding="8,4"
+                                    FontSize="13"
+                                    ToolTip.Tip="Очистить"
+                                    Background="Transparent"
+                                    BorderThickness="1"
+                                    BorderBrush="{DynamicResource SettingsBorderBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Button Content="{Binding SpinButtonText}"
+                            Command="{Binding SpinCommand}"
+                            FontSize="18"
+                            FontWeight="Bold"
+                            Padding="20,12"
+                            HorizontalAlignment="Stretch"
+                            Classes="SettingsAction" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Add item popup -->
+        <Popup IsOpen="{Binding IsAddItemPopupOpen}"
+               PlacementTarget="{Binding $self}"
+               Placement="Center"
+               HorizontalOffset="0"
+               VerticalOffset="0"
+               Width="360">
+            <Border Background="{DynamicResource SettingsCardBackgroundBrush}"
+                    BorderBrush="{DynamicResource SettingsBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Новый элемент"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource SettingsHeaderForegroundBrush}" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Width="56" Height="56"
+                                CornerRadius="8"
+                                BorderBrush="{DynamicResource SettingsBorderBrush}"
+                                BorderThickness="1"
+                                IsVisible="{Binding NewItemPopupImagePath, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <Image Source="{Binding NewItemPopupImagePath, Converter={StaticResource PathToBitmapConverter}}"
+                                   Stretch="Uniform" />
+                        </Border>
+                        <Button Content="📷 Выбрать картинку"
+                                Command="{Binding PickNewItemImageCommand}"
+                                VerticalAlignment="Center"
+                                Padding="12,6" />
+                    </StackPanel>
+                    <TextBox Text="{Binding NewItemPopupText}"
+                             PlaceholderText="Название (опционально)..."
+                             KeyDown="OnAddItemKeyDown" />
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                        <Button Content="Отмена"
+                                Click="OnCancelAddItemPopup"
+                                Padding="16,6" />
+                        <Button Content="OK"
+                                Command="{Binding ConfirmAddItemCommand}"
+                                Classes="SettingsAction"
+                                Padding="24,6" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <!-- Team settings popup -->
+        <Popup IsOpen="{Binding IsTeamSettingsPopupOpen}"
+               PlacementTarget="{Binding $self}"
+               Placement="Center"
+               HorizontalOffset="0"
+               VerticalOffset="0"
+               Width="300">
+            <Border Background="{DynamicResource SettingsCardBackgroundBrush}"
+                    BorderBrush="{DynamicResource SettingsBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Настройки команды"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource SettingsHeaderForegroundBrush}" />
+                    <CheckBox Content="Две команды"
+                              IsChecked="{Binding UseTwoTeams}"
+                              FontSize="13" />
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Команда 1 — бойцов:"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource SettingsMutedForegroundBrush}" />
+                        <TextBox Text="{Binding TeamPickTargetCount}"
+                                 HorizontalContentAlignment="Center"
+                                 FontSize="13" />
+                    </StackPanel>
+                    <StackPanel Spacing="6"
+                                IsVisible="{Binding UseTwoTeams}">
+                        <TextBlock Text="Команда 2 — бойцов:"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource SettingsMutedForegroundBrush}" />
+                        <TextBox Text="{Binding Team2TargetCount}"
+                                 HorizontalContentAlignment="Center"
+                                 FontSize="13" />
+                    </StackPanel>
+                    <Button Content="Готово"
+                            Click="OnCloseTeamSettingsPopup"
+                            HorizontalAlignment="Right"
+                            Classes="SettingsAction"
+                            Padding="24,6" />
+                </StackPanel>
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>

@@ -1,0 +1,144 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Background="{DynamicResource SettingsBackgroundBrush}">
+            <Grid ColumnDefinitions="220,*">
+                <Border Grid.Column="0" Classes="Sidebar">
+                    <StackPanel Spacing="8">
+                        <ToggleButton Classes="SidebarToggle" Content="☰" IsChecked="True" />
+                        <ListBox Classes="NavigationList">
+                            <ListBoxItem IsSelected="True">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="◯" FontSize="18" />
+                                    <TextBlock Text="Circle" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem>
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="♪" FontSize="18" />
+                                    <TextBlock Text="Tuner" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem>
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="♫" FontSize="18" />
+                                    <TextBlock Text="Аккорды" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </ListBoxItem>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Classes="ContentArea">
+                    <TextBlock Text="Content" Classes="SettingsHeader" />
+                </Border>
+            </Grid>
+        </Border>
+    </Design.PreviewWith>
+
+    <Style Selector="Window.MainWindow">
+        <Setter Property="Background" Value="{DynamicResource SettingsBackgroundBrush}" />
+        <Setter Property="TransparencyLevelHint" Value="None" />
+    </Style>
+
+    <Style Selector="Border.Sidebar">
+        <Setter Property="Background" Value="{DynamicResource SettingsCardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SettingsBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,1,0" />
+        <Setter Property="Padding" Value="0,12,0,12" />
+    </Style>
+
+    <Style Selector="Border.ContentArea">
+        <Setter Property="Padding" Value="20" />
+    </Style>
+
+    <Style Selector="ToggleButton.SidebarToggle">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource SettingsHeaderForegroundBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Width" Value="80" />
+        <Setter Property="Height" Value="48" />
+        <Setter Property="Padding" Value="12" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="ToggleButton.SidebarToggle:pointerover">
+        <Setter Property="Background" Value="{DynamicResource SettingsCardBackgroundBrush}" />
+    </Style>
+
+    <Style Selector="ToggleButton.SidebarToggle:checked /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SettingsCardBackgroundBrush}" />
+    </Style>
+
+    <Style Selector="Button.SidebarAction">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource SettingsMutedForegroundBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="12" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+                <BrushTransition Property="Foreground" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button.SidebarAction:pointerover">
+        <Setter Property="Background" Value="{DynamicResource SettingsCardBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SettingsHeaderForegroundBrush}" />
+    </Style>
+
+    <Style Selector="ListBox.NavigationList">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+    </Style>
+
+    <Style Selector="ListBox.NavigationList ListBoxItem">
+        <Setter Property="Background" Value="{DynamicResource SettingsBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SettingsMutedForegroundBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="10,12" />
+        <Setter Property="Margin" Value="8,4" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Foreground" Duration="0:0:0.15" />
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="ListBox.NavigationList ListBoxItem:pointerover">
+        <Setter Property="Background" Value="{DynamicResource SettingsBorderBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SettingsHeaderForegroundBrush}" />
+    </Style>
+
+    <Style Selector="ListBox.NavigationList ListBoxItem:selected">
+        <Setter Property="Background" Value="{DynamicResource SettingsAccentBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SettingsAccentForegroundBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="ListBox.NavigationList ListBoxItem:selected:pointerover">
+        <Setter Property="Background" Value="{DynamicResource SettingsAccentHoverBrush}" />
+    </Style>
+
+</Styles>

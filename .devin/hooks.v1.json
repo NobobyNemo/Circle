@@ -1,0 +1,46 @@
+{
+  "UserPromptSubmit": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .devin/scripts/kb-context.cjs",
+          "timeout": 5
+        }
+      ]
+    }
+  ],
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .devin/scripts/kb-context.cjs",
+          "timeout": 5
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "matcher": "^(edit|write)$",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .devin/scripts/kb-edit-reminder.cjs",
+          "timeout": 5
+        }
+      ]
+    },
+    {
+      "matcher": "^(web_search|webfetch)$",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .devin/scripts/kb-web-reminder.cjs",
+          "timeout": 5
+        }
+      ]
+    }
+  ]
+}
