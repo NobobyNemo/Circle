@@ -1,0 +1,14 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Circle.Desktop.Views.CircleView"
+             xmlns:vm="using:Circle.Desktop.ViewModels"
+             x:DataType="vm:CircleViewModel">
+    <Border Background="#10131a"
+            CornerRadius="12"
+            Padding="20">
+        <Canvas x:Name="CircleCanvas"
+                Width="500"
+                Height="500"
+                Background="Transparent" />
+    </Border>
+</UserControl>

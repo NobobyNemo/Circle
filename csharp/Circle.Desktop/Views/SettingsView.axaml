@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Circle.Desktop.Views.SettingsView"
+             xmlns:vm="using:Circle.Desktop.ViewModels"
+             xmlns:audio="using:Circle.Desktop.Audio"
+             x:DataType="vm:SettingsViewModel">
+    <StackPanel Spacing="16">
+        <TextBlock Text="Tuner" Classes="SettingsHeader" />
+
+        <StackPanel Spacing="8">
+            <TextBlock Text="Audio input device for tuner" Classes="SettingsLabel" />
+            <ComboBox ItemsSource="{Binding InputDevices}"
+                      SelectedItem="{Binding SelectedInputDevice}"
+                      PlaceholderText="Select microphone"
+                      MaxDropDownHeight="300"
+                      Classes="SettingsComboBox">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="audio:AudioDevice">
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

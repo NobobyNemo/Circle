@@ -1,0 +1,313 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Circle.Desktop.ViewModels"
+        xmlns:m="using:Circle.Desktop.Models"
+        x:Class="Circle.Desktop.Views.WheelListManagerWindow"
+        x:Name="Root"
+        x:DataType="vm:WheelOfFortuneViewModel"
+        Classes="SettingsWindow"
+        Title="Управление списками"
+        Width="560"
+        Height="600"
+        MinWidth="480"
+        MinHeight="480">
+    <Design.DataContext>
+        <vm:WheelOfFortuneViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="16">
+        <!-- Saved lists bar -->
+        <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0"
+                           Text="Списки"
+                           FontSize="16"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource SettingsHeaderForegroundBrush}" />
+                <Button Grid.Column="1"
+                        Content="+ Новый список"
+                        Click="OnOpenCreatePopup"
+                        Padding="10,4"
+                        FontSize="12" />
+            </Grid>
+            <ScrollViewer Height="60" HorizontalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding SavedLists}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="6" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Border CornerRadius="8"
+                                    BorderThickness="2"
+                                    Padding="12,6"
+                                    Margin="0,2"
+                                    Tag="{Binding}"
+                                    PointerPressed="OnListPointerPressed">
+                                <Border.Background>
+                                    <MultiBinding Converter="{StaticResource ActiveListBackgroundConverter}">
+                                        <Binding />
+                                        <Binding ElementName="Root"
+                                                 Path="DataContext.CurrentListName" />
+                                    </MultiBinding>
+                                </Border.Background>
+                                <Border.BorderBrush>
+                                    <MultiBinding Converter="{StaticResource ActiveListBorderConverter}">
+                                        <Binding />
+                                        <Binding ElementName="Root"
+                                                 Path="DataContext.CurrentListName" />
+                                    </MultiBinding>
+                                </Border.BorderBrush>
+                                <Border.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Переименовать..."
+                                                  Click="OnRenameListClick"
+                                                  Tag="{ReflectionBinding $parent[Border].Tag}" />
+                                        <MenuItem Header="Удалить"
+                                                  Click="OnDeleteListClick"
+                                                  Tag="{ReflectionBinding $parent[Border].Tag}" />
+                                    </ContextMenu>
+                                </Border.ContextMenu>
+                                <TextBlock Text="{Binding}"
+                                           Foreground="{DynamicResource SettingsHeaderForegroundBrush}"
+                                           FontWeight="Normal" />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </StackPanel>
+
+        <!-- Saved items list -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource SettingsCardBackgroundBrush}"
+                BorderBrush="{DynamicResource SettingsBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="12"
+                Padding="12"
+                Margin="0,0,0,12">
+            <Grid RowDefinitions="Auto,*">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,8">
+                    <TextBlock Grid.Column="0"
+                               Text="Элементы списка"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource SettingsHeaderForegroundBrush}" />
+                    <Button Grid.Column="1"
+                            Content="⇉ Все на колесо"
+                            Command="{Binding AddAllToWheelCommand}"
+                            Padding="10,4"
+                            FontSize="12"
+                            Margin="0,0,6,0"
+                            ToolTip.Tip="Добавить все элементы на колесо" />
+                    <Button Grid.Column="2"
+                            Content="+ Добавить элемент"
+                            Command="{Binding OpenAddItemPopupManagerCommand}"
+                            Padding="10,4"
+                            FontSize="12" />
+                </Grid>
+                <ScrollViewer Grid.Row="1">
+                    <ItemsControl ItemsSource="{Binding SavedItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="m:WheelItem">
+                                <Border Background="{DynamicResource SettingsBackgroundBrush}"
+                                        CornerRadius="8"
+                                        Padding="10,8"
+                                        Margin="0,3">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+                                        <Border Grid.Column="0"
+                                                Width="36" Height="36"
+                                                CornerRadius="6"
+                                                Background="{DynamicResource SettingsBackgroundBrush}"
+                                                BorderBrush="{DynamicResource SettingsBorderBrush}"
+                                                BorderThickness="1"
+                                                Margin="0,0,4,0">
+                                            <Grid>
+                                                <Image Source="{Binding ImagePath, Converter={StaticResource PathToBitmapConverter}}"
+                                                       Stretch="Uniform"
+                                                       IsVisible="{Binding HasImage}" />
+                                                <TextBlock Text="🖼"
+                                                           FontSize="16"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{DynamicResource SettingsMutedForegroundBrush}"
+                                                           IsVisible="{Binding !HasImage}" />
+                                            </Grid>
+                                        </Border>
+                                        <TextBox Grid.Column="1"
+                                                 Text="{Binding Text, Mode=TwoWay}"
+                                                 PlaceholderText="Название..."
+                                                 VerticalAlignment="Center"
+                                                 Margin="8,0,0,0"
+                                                 Background="Transparent"
+                                                 BorderThickness="0"
+                                                 Foreground="{DynamicResource SettingsHeaderForegroundBrush}" />
+                                        <Button Grid.Column="2"
+                                                Content="📷"
+                                                Padding="4,2"
+                                                FontSize="11"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                ToolTip.Tip="Изменить картинку"
+                                                Command="{Binding $parent[ItemsControl].((vm:WheelOfFortuneViewModel)DataContext).PickImageCommand}"
+                                                CommandParameter="{Binding}" />
+                                        <Button Grid.Column="3"
+                                                x:Name="DeleteItemBtn"
+                                                Content="✕"
+                                                Padding="6,2"
+                                                FontSize="12"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Foreground="{DynamicResource SettingsMutedForegroundBrush}"
+                                                ToolTip.Tip="Удалить"
+                                                Click="OnDeleteItemClick"
+                                                Tag="{Binding}" />
+                                        <Button Grid.Column="4"
+                                                Content="→"
+                                                Padding="8,2"
+                                                FontSize="14"
+                                                FontWeight="Bold"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Foreground="#10b981"
+                                                ToolTip.Tip="Добавить на колесо"
+                                                Command="{Binding $parent[ItemsControl].((vm:WheelOfFortuneViewModel)DataContext).AddFromSavedCommand}"
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Bottom bar -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+            <Button Grid.Column="0"
+                    Content="💾 Сохранить"
+                    Command="{Binding SaveCurrentListCommand}"
+                    Classes="SettingsAction"
+                    HorizontalAlignment="Left"
+                    Padding="16,8" />
+            <Button Grid.Column="1"
+                    Content="Готово"
+                    Click="OnClose"
+                    Classes="SettingsAction"
+                    Padding="24,8" />
+        </Grid>
+
+        <!-- Create list popup -->
+        <Popup IsOpen="{Binding IsCreateListPopupOpen}"
+               PlacementTarget="{Binding $self}"
+               Placement="Center"
+               HorizontalOffset="0"
+               VerticalOffset="0"
+               Width="320">
+            <Border Background="{DynamicResource SettingsCardBackgroundBrush}"
+                    BorderBrush="{DynamicResource SettingsBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Новый список"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource SettingsHeaderForegroundBrush}" />
+                    <TextBox Text="{Binding CreateListName}"
+                             PlaceholderText="Имя списка..."
+                             KeyDown="OnCreateListKeyDown" />
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                        <Button Content="Отмена"
+                                Click="OnCancelCreatePopup"
+                                Padding="16,6" />
+                        <Button Content="OK"
+                                Command="{Binding CreateListCommand}"
+                                Classes="SettingsAction"
+                                Padding="24,6" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <!-- Add item popup -->
+        <Popup IsOpen="{Binding IsAddItemPopupOpenManager}"
+               PlacementTarget="{Binding $self}"
+               Placement="Center"
+               HorizontalOffset="0"
+               VerticalOffset="0"
+               Width="360">
+            <Border Background="{DynamicResource SettingsCardBackgroundBrush}"
+                    BorderBrush="{DynamicResource SettingsBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Новый элемент"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource SettingsHeaderForegroundBrush}" />
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Width="56" Height="56"
+                                CornerRadius="8"
+                                BorderBrush="{DynamicResource SettingsBorderBrush}"
+                                BorderThickness="1"
+                                IsVisible="{Binding NewItemPopupImagePath, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <Image Source="{Binding NewItemPopupImagePath, Converter={StaticResource PathToBitmapConverter}}"
+                                   Stretch="Uniform" />
+                        </Border>
+                        <Button Content="📷 Выбрать картинку"
+                                Command="{Binding PickNewItemImageCommand}"
+                                VerticalAlignment="Center"
+                                Padding="12,6" />
+                    </StackPanel>
+                    <TextBox Text="{Binding NewItemPopupText}"
+                             PlaceholderText="Название (опционально)..."
+                             KeyDown="OnAddItemKeyDown" />
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                        <Button Content="Отмена"
+                                Click="OnCancelAddItemPopup"
+                                Padding="16,6" />
+                        <Button Content="OK"
+                                Command="{Binding ConfirmAddItemManagerCommand}"
+                                Classes="SettingsAction"
+                                Padding="24,6" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <!-- Rename list popup -->
+        <Popup IsOpen="{Binding IsRenameListPopupOpen}"
+               PlacementTarget="{Binding $self}"
+               Placement="Center"
+               HorizontalOffset="0"
+               VerticalOffset="0"
+               Width="320">
+            <Border Background="{DynamicResource SettingsCardBackgroundBrush}"
+                    BorderBrush="{DynamicResource SettingsBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Переименовать список"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource SettingsHeaderForegroundBrush}" />
+                    <TextBox Text="{Binding RenameListName}"
+                             PlaceholderText="Имя списка..."
+                             KeyDown="OnRenameListKeyDown" />
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                        <Button Content="Отмена"
+                                Click="OnCancelRenamePopup"
+                                Padding="16,6" />
+                        <Button Content="OK"
+                                Click="OnConfirmRenamePopup"
+                                Classes="SettingsAction"
+                                Padding="24,6" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
+    </Grid>
+</Window>

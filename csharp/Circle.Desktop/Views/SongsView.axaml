@@ -1,0 +1,288 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Circle.Desktop.ViewModels"
+             xmlns:model="using:Circle.Desktop.Models"
+             x:Class="Circle.Desktop.Views.SongsView"
+             x:DataType="vm:SongsViewModel">
+    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="280,*" Margin="20" RowSpacing="14" ColumnSpacing="14">
+        <Grid Grid.ColumnSpan="2" ColumnDefinitions="*,Auto">
+            <Grid Grid.Column="0">
+                <TextBlock Text="{Binding Title}"
+                           IsVisible="{Binding IsReadOnly}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           VerticalAlignment="Center" />
+                <TextBox Text="{Binding Title}"
+                         IsVisible="{Binding IsEditMode}"
+                         PlaceholderText="Название песни"
+                         FontSize="24"
+                         FontWeight="Bold"
+                         Background="Transparent"
+                         BorderThickness="0" />
+            </Grid>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <Button Content="Табулатуры"
+                        Click="OpenTablatures"
+                        ToolTip.Tip="Открыть все табулатуры песни" />
+                <ToggleSwitch IsChecked="{Binding IsEditMode}"
+                              OnContent="Редактирование"
+                              OffContent="Просмотр" />
+                <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding IsEditMode}">
+                    <Button Content="Графика" Command="{Binding ShowGraphicalModeCommand}" />
+                    <Button Content="Текст" Command="{Binding ShowTextEditorCommand}" />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" Grid.Column="0"
+                Background="#181e26"
+                BorderBrush="#374151"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="10">
+            <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="8">
+                <TextBlock Text="Библиотека аккордов"
+                           FontWeight="Bold"
+                           Foreground="White" />
+                <TextBox Grid.Row="1"
+                         Text="{Binding SearchQuery, Mode=TwoWay}"
+                         PlaceholderText="Поиск..." />
+                <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="4">
+                    <ComboBox Grid.Column="0"
+                              ItemsSource="{Binding AvailableLetters}"
+                              SelectedItem="{Binding SelectedLetter, Mode=TwoWay}"
+                              PlaceholderText="Буква" />
+                    <Button Grid.Column="1"
+                            Content="📂"
+                            ToolTip.Tip="Открыть файл"
+                            Click="OpenFile" />
+                    <Button Grid.Column="2"
+                            Content="＋"
+                            ToolTip.Tip="Новая песня"
+                            IsVisible="{Binding IsEditMode}"
+                            Command="{Binding NewSongCommand}" />
+                    <Button Grid.Column="3"
+                            Content="💾"
+                            ToolTip.Tip="Сохранить песню"
+                            IsVisible="{Binding IsEditMode}"
+                            Click="SaveFile" />
+                </Grid>
+                <ListBox Grid.Row="3"
+                         ItemsSource="{Binding VisibleArtists}"
+                         SelectedItem="{Binding SelectedArtist}"
+                         IsVisible="{Binding IsArtistList}" />
+                <ListBox Grid.Row="3"
+                         ItemsSource="{Binding VisibleSongs}"
+                         SelectedItem="{Binding SelectedSong}"
+                         IsVisible="{Binding !IsArtistList}" />
+                <Button Grid.Row="4"
+                        Content="← Исполнители"
+                        Command="{Binding BackToArtistsCommand}"
+                        IsVisible="{Binding !IsArtistList}"
+                        HorizontalAlignment="Left" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" Grid.Column="1" IsVisible="{Binding IsTextEditorMode}">
+            <Border Background="#181e26" CornerRadius="10" Padding="12">
+                <Grid RowDefinitions="Auto,*" RowSpacing="8">
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                        <TextBlock Text="Plain text — редактирование"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="White" />
+                        <Button Grid.Column="1"
+                                Content="ChordPro"
+                                Command="{Binding ImportChordProCommand}" />
+                        <Button Grid.Column="2"
+                                Content="Надстрочные аккорды"
+                                Command="{Binding ImportClassicCommand}" />
+                    </Grid>
+                    <TextBox Grid.Row="1"
+                             Text="{Binding SourceText, Mode=TwoWay}"
+                             AcceptsReturn="True"
+                             TextWrapping="NoWrap"
+                             VerticalContentAlignment="Top"
+                             ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             PlaceholderText="Вставьте сюда текст песни с аккордами" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="1" IsVisible="{Binding IsGraphicalMode}">
+            <Border Background="#10131a"
+                    CornerRadius="10"
+                    Padding="24"
+                    Width="{Binding EditorPanelWidth}"
+                    HorizontalAlignment="Center">
+                <Grid RowDefinitions="Auto,*">
+                    <StackPanel Grid.Row="0"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                Margin="0,0,0,8"
+                                IsVisible="{Binding IsEditMode}">
+                        <Button Content="Добавить строку"
+                                Command="{Binding AddLineCommand}" />
+                        <Button Content="Добавить табулатуру"
+                                Click="AddTab" />
+                    </StackPanel>
+                    <ScrollViewer x:Name="GraphScrollViewer"
+                                  Grid.Row="1"
+                                  HorizontalScrollBarVisibility="Hidden"
+                                  VerticalScrollBarVisibility="Auto"
+                                  PointerMoved="ScrollViewerPointerMoved"
+                                  PointerReleased="ScrollViewerPointerReleased">
+                        <StackPanel Spacing="2"
+                                    Width="{Binding $parent[UserControl].DataContext.EditorWidth}">
+                            <ItemsControl ItemsSource="{Binding DisplayBlocks}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="model:SongDisplayBlock">
+                                        <Border Background="#1a2230"
+                                                BorderBrush="#374151"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="0,8"
+                                                Width="{Binding $parent[UserControl].DataContext.EditorWidth}"
+                                                Margin="0,0,0,6">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="{Binding SectionDisplayTitle}"
+                                                           IsVisible="{Binding HasSection}"
+                                                           Foreground="#facc15"
+                                                           FontSize="{Binding $parent[UserControl].DataContext.DisplayFontSize}"
+                                                           FontWeight="Bold" />
+                                                <ItemsControl ItemsSource="{Binding Lines}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="model:SongLine">
+                                                            <Grid x:Name="LineRoot"
+                                                                  ColumnDefinitions="20,*" ColumnSpacing="4"
+                                                                  Background="Transparent"
+                                                                  PointerPressed="LinePointerPressed">
+                                                                <Border Grid.Column="0"
+                                                                        Background="#2a3441"
+                                                                        CornerRadius="3"
+                                                                        Width="14"
+                                                                        Height="20"
+                                                                        HorizontalAlignment="Center"
+                                                                        VerticalAlignment="Center"
+                                                                        IsVisible="{Binding $parent[UserControl].DataContext.IsEditMode}"
+                                                                        Cursor="SizeAll">
+                                                                    <TextBlock Text="⠿"
+                                                                               Foreground="#6b7280"
+                                                                               FontSize="12"
+                                                                               HorizontalAlignment="Center"
+                                                                               VerticalAlignment="Center" />
+                                                                </Border>
+                                                                <StackPanel Grid.Column="1" Spacing="3">
+                                                                <TextBlock Text="{Binding TabText}"
+                                                                           IsVisible="{Binding IsTabBlock}"
+                                                                           FontFamily="Consolas"
+                                                                           FontSize="{Binding $parent[UserControl].DataContext.DisplayFontSize}"
+                                                                           Foreground="#d1d5db"
+                                                                           TextWrapping="NoWrap" />
+                                            <Border Background="#374151"
+                                                    CornerRadius="4"
+                                                    Padding="8,3"
+                                                    IsVisible="{Binding IsSectionHeader}">
+                                                <TextBlock Text="{Binding SectionDisplayTitle}"
+                                                           Foreground="#facc15"
+                                                           FontSize="{Binding $parent[UserControl].DataContext.DisplayFontSize}"
+                                                           FontWeight="Bold" />
+                                            </Border>
+                                            <Grid ColumnDefinitions="*"
+                                                  ColumnSpacing="6"
+                                                  Width="{Binding $parent[UserControl].DataContext.EditorWidth}"
+                                                  HorizontalAlignment="Left"
+                                                  IsVisible="{Binding IsRegularLine}">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="{Binding ChordLaneHeight}" />
+                                                    <RowDefinition Height="{Binding LineHeight}" />
+                                                </Grid.RowDefinitions>
+                                                <ItemsControl Grid.Row="0" ItemsSource="{Binding Chords}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <Canvas Height="{Binding ChordLaneHeight}" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.Styles>
+                                                        <Style Selector="ContentPresenter" x:DataType="model:SongChord">
+                                                            <Setter Property="Canvas.Left" Value="{Binding PixelPosition}" />
+                                                        </Style>
+                                                    </ItemsControl.Styles>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="model:SongChord">
+                                                            <Border Background="#3b82f6"
+                                                                    CornerRadius="4"
+                                                                    Padding="0"
+                                                                    Width="{Binding BlockWidth}"
+                                                                    Height="{Binding BlockHeight}"
+                                                                    Focusable="False"
+                                                                    Cursor="Hand"
+                                                                    PointerPressed="ChordPointerPressed"
+                                                                    PointerMoved="ChordPointerMoved"
+                                                                    PointerReleased="ChordPointerReleased">
+                                                                <TextBlock Text="{Binding Name}"
+                                                                           Foreground="White"
+                                                                           FontFamily="Consolas"
+                                                                           FontSize="{Binding BlockFontSize}"
+                                                                           FontWeight="Bold"
+                                                                           HorizontalAlignment="Center"
+                                                                           TextAlignment="Center"
+                                                                           VerticalAlignment="Center" />
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                                <Grid Grid.Row="1" Height="{Binding LineHeight}">
+                                                    <TextBlock Text="{Binding Lyrics}"
+                                                               IsVisible="{Binding $parent[UserControl].DataContext.IsReadOnly}"
+                                                               VerticalAlignment="Center"
+                                                               FontFamily="Consolas"
+                                                               FontSize="{Binding $parent[UserControl].DataContext.DisplayFontSize}" />
+                                                    <TextBox Text="{Binding Lyrics, Mode=TwoWay}"
+                                                             IsVisible="{Binding $parent[UserControl].DataContext.IsEditMode}"
+                                                             CaretIndex="{Binding CaretIndex, Mode=TwoWay}"
+                                                             Height="{Binding LineHeight}"
+                                                             Padding="2,0"
+                                                             VerticalContentAlignment="Center"
+                                                             FontFamily="Consolas"
+                                                             FontSize="{Binding $parent[UserControl].DataContext.DisplayFontSize}" />
+                                                </Grid>
+                                            </Grid>
+                                                                </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="2" Grid.ColumnSpan="2" ColumnDefinitions="Auto,140,Auto,Auto,100,Auto,*" ColumnSpacing="10">
+            <TextBlock Grid.Column="0" Text="Размер текста:" VerticalAlignment="Center" Foreground="#9ca3af" />
+            <Slider Grid.Column="1" Minimum="9" Maximum="22" Value="{Binding DisplayFontSize, Mode=TwoWay}" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="2" Text="{Binding DisplayFontSize, StringFormat='{}{0:0} px'}" VerticalAlignment="Center" Foreground="#9ca3af" />
+            <Button Grid.Column="3"
+                    Content="{Binding AutoScrollButtonText}"
+                    Command="{Binding ToggleAutoScrollCommand}"
+                    IsVisible="{Binding IsGraphicalMode}"
+                    Padding="10,4" />
+            <TextBlock Grid.Column="4" Text="Скорость:"
+                       IsVisible="{Binding IsGraphicalMode}"
+                       Foreground="#9ca3af" VerticalAlignment="Center" />
+            <Slider Grid.Column="5" Minimum="0.25" Maximum="3" Value="{Binding AutoScrollSpeed, Mode=TwoWay}"
+                    IsVisible="{Binding IsGraphicalMode}" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="6" Text="{Binding AutoScrollSpeed, StringFormat='{}{0:0.00}x'}"
+                       IsVisible="{Binding IsGraphicalMode}"
+                       Foreground="#9ca3af" VerticalAlignment="Center" />
+        </Grid>
+    </Grid>
+</UserControl>

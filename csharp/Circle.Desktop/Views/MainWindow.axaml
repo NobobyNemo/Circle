@@ -1,0 +1,121 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Circle.Desktop.ViewModels"
+        xmlns:v="using:Circle.Desktop.Views"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+        x:Class="Circle.Desktop.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Classes="MainWindow"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Circle of Fifths">
+
+    <Design.DataContext>
+        <vm:MainViewModel />
+    </Design.DataContext>
+
+    <Grid ColumnDefinitions="Auto,*">
+        <Image Grid.ColumnSpan="2"
+               Source="avares://Circle.Desktop/Assets/Background-WF.png"
+               Stretch="UniformToFill"
+               Opacity="0.72"
+               IsVisible="{Binding IsFortuneSelected}"
+               IsHitTestVisible="False" />
+        <Border Grid.Column="0"
+                Classes="Sidebar"
+                Width="{Binding SidebarWidth}">
+            <Grid RowDefinitions="Auto,*,Auto">
+                <ToggleButton Grid.Row="0"
+                              Classes="SidebarToggle"
+                              IsChecked="{Binding IsSidebarExpanded, Mode=TwoWay}"
+                              ToolTip.Tip="Свернуть/развернуть меню">
+                    <TextBlock Text="☰" FontSize="18" Width="24" Height="24" TextAlignment="Center" VerticalAlignment="Center" />
+                </ToggleButton>
+
+                <ListBox Grid.Row="1"
+                         Classes="NavigationList"
+                         SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}">
+                    <ListBoxItem HorizontalContentAlignment="{Binding IsSidebarExpanded, Converter={StaticResource SidebarContentAlignmentConverter}}"
+                                 x:DataType="vm:MainViewModel">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <TextBlock Text="●" FontSize="14" Width="24" Height="24" TextAlignment="Center" VerticalAlignment="Center" />
+                            <TextBlock Text="Circle"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding IsSidebarExpanded}" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem HorizontalContentAlignment="{Binding IsSidebarExpanded, Converter={StaticResource SidebarContentAlignmentConverter}}"
+                                 x:DataType="vm:MainViewModel">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <TextBlock Text="♪" FontSize="18" Width="24" Height="24" TextAlignment="Center" VerticalAlignment="Center" />
+                            <TextBlock Text="Tuner"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding IsSidebarExpanded}" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem HorizontalContentAlignment="{Binding IsSidebarExpanded, Converter={StaticResource SidebarContentAlignmentConverter}}"
+                                 x:DataType="vm:MainViewModel">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <TextBlock Text="♫" FontSize="18" Width="24" Height="24" TextAlignment="Center" VerticalAlignment="Center" />
+                            <TextBlock Text="Аккорды"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding IsSidebarExpanded}" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem HorizontalContentAlignment="{Binding IsSidebarExpanded, Converter={StaticResource SidebarContentAlignmentConverter}}"
+                                 x:DataType="vm:MainViewModel">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <TextBlock Text="🎯" FontSize="16" Width="24" Height="24" TextAlignment="Center" VerticalAlignment="Center" />
+                            <TextBlock Text="Фортуна"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding IsSidebarExpanded}" />
+                        </StackPanel>
+                    </ListBoxItem>
+                </ListBox>
+
+                <Button Grid.Row="2"
+                        Classes="SidebarAction"
+                        Command="{Binding ShowSettingsCommand}"
+                        HorizontalContentAlignment="{Binding IsSidebarExpanded, Converter={StaticResource SidebarContentAlignmentConverter}}"
+                        ToolTip.Tip="Настройки">
+                    <StackPanel Orientation="Horizontal" Spacing="12" x:DataType="vm:MainViewModel">
+                        <TextBlock Text="⚙" FontSize="18" Width="24" Height="24" TextAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Text="Настройки"
+                                   VerticalAlignment="Center"
+                                   IsVisible="{Binding IsSidebarExpanded}" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <Border Grid.Column="1" Classes="ContentArea">
+            <ContentControl Content="{Binding CurrentPage}">
+                <ContentControl.DataTemplates>
+                    <DataTemplate x:DataType="vm:CirclePageViewModel">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <v:CircleView Grid.Column="0"
+                                          DataContext="{Binding CircleViewModel}"
+                                          HorizontalAlignment="Center"
+                                          Margin="0,0,20,0" />
+                            <v:CirclePanelView Grid.Column="1"
+                                               DataContext="{Binding CirclePanelViewModel}" />
+                        </Grid>
+                    </DataTemplate>
+                    <DataTemplate x:DataType="vm:TunerViewModel">
+                        <v:TunerView />
+                    </DataTemplate>
+                    <DataTemplate x:DataType="vm:SongsViewModel">
+                        <v:SongsView />
+                    </DataTemplate>
+                    <DataTemplate x:DataType="vm:WheelOfFortuneViewModel">
+                        <v:WheelOfFortuneView />
+                    </DataTemplate>
+                    <DataTemplate x:DataType="vm:SettingsViewModel">
+                        <v:SettingsView />
+                    </DataTemplate>
+                </ContentControl.DataTemplates>
+            </ContentControl>
+        </Border>
+    </Grid>
+</Window>

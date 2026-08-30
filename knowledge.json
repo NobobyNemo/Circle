@@ -1,0 +1,422 @@
+{
+  "topics": {
+    "root": {
+      "id": "root",
+      "title": "Circle of Fifths — Desktop App",
+      "content": "Десктопное приложение для изучения и визуализации кварта-квинтового круга, тренировки слуха (тюнер) и работы с аккордами/текстами песен. Реализовано на Avalonia UI + .NET 10. Музыкальное ядро вынесено в Circle.Core, UI и аудио — в Circle.Desktop.",
+      "parentId": null,
+      "tags": [
+        "overview"
+      ]
+    },
+    "overview": {
+      "id": "overview",
+      "title": "Overview и технологии",
+      "content": "Основные возможности:\n- интерактивный Circle of Fifths с выбором тональности\n- отображение ступеней лада и аккордов\n- тюнер с захватом микрофона\n- библиотека песен с разбором ChordPro и аккордов над текстом\n- аппаратная вкладка настроек аудиовхода\n\nТехстек: C#, .NET 10, Avalonia 12.1, CommunityToolkit.Mvvm, NAudio, ManagedBass.\nРепозиторий также содержит legacy web-части (frontend/backend/shared), которые не используются в десктопе.",
+      "parentId": "root",
+      "tags": [
+        "overview",
+        "stack"
+      ]
+    },
+    "architecture": {
+      "id": "architecture",
+      "title": "Архитектура и проекты",
+      "content": "Проекты:\n- Circle.Core — class library .NET 10: домен, музыкальные алгоритмы, утилиты.\n- Circle.Desktop — .NET 10 WinExe (net10.0-windows10.0.19041.0), Avalonia, аудио, UI, ViewModels.\n\nDI-контейнер не используется; сервисы создаются вручную (например, MediaCaptureStreamService в MainViewModel). ViewLocator по соглашению заменяет суффикс ViewModel на View. MainWindow содержит меню и ContentControl с DataTemplates для страниц.",
+      "parentId": "root",
+      "tags": [
+        "architecture",
+        "projects"
+      ]
+    },
+    "build-run": {
+      "id": "build-run",
+      "title": "Сборка и запуск",
+      "content": "Сборка: `dotnet build` в папке `csharp/`. `Circle.Desktop` — WinExe, RuntimeIdentifier `win-x64`, SelfContained false. Целевая ОС Windows 10.0.19041.0 и выше.\n\nЗапуск разработки:\n- CLI: `dotnet run --project Circle.Desktop`.\n- Visual Studio: стартовый проект по умолчанию задаётся через `DefaultStartup=\"true\"` в `Circle.slnx` на элементе `Circle.Desktop/Circle.Desktop.csproj`. Если `.suo` уже создан, VS может игнорировать это значение — очисти `.vs/` или выбери стартовый проект вручную.\n\nПри `Packaged=true` генерируется MSIX/AppxPackage для sideloading. Тестовый сертификат `Circle.Desktop_TestCertificate.pfx` хранится локально и игнорируется Git; пароль для упаковки передаётся через переменную окружения `CIRCLE_PACKAGE_CERTIFICATE_PASSWORD` или свойство MSBuild `PackageCertificatePassword`.\n\nGit: корневой `.gitignore` исключает `bin/`, `obj/`, `.vs/`, `node_modules/`, `dist/`, `AppPackages/` и `Staging/` во всех подпапках, IDE-файлы `*.user` и `*.suo`, сертификаты `*.pfx` и локальные метаданные `/.windsurf/`. Эти каталоги и файлы не следует добавлять в коммиты.",
+      "parentId": "root",
+      "tags": [
+        "build",
+        "deploy",
+        "visual-studio",
+        "slnx",
+        "startup-project",
+        "gitignore",
+        "secrets"
+      ]
+    },
+    "domain-models": {
+      "id": "domain-models",
+      "title": "Доменные модели",
+      "content": "Модели в Circle.Core.Domain:\n- Note: имя, октава, опциональный enharmonic alias; Equals учитывает enharmonic.\n- Key: нота + KeyType (Major/Minor).\n- KeyType: Major, Minor.\n- Mode: название + шаблон интервалов (полутонов).\n- ScaleDegree: нота ступени + тип аккорда (maj/min/dim).\n- KeySelection: (KeyType, Index) — сектор на круге.",
+      "parentId": "root",
+      "tags": [
+        "domain",
+        "models"
+      ]
+    },
+    "music-engine": {
+      "id": "music-engine",
+      "title": "Музыкальное ядро",
+      "content": "Алгоритмы в Circle.Core.Music: построение ладов, кварта-квинтовый круг, относительные тональности, аккорды по ступеням, вычисление частот. Используют readonly-коллекции и record/immutable-типы.",
+      "parentId": "root",
+      "tags": [
+        "music",
+        "core"
+      ]
+    },
+    "circle-of-fifths": {
+      "id": "circle-of-fifths",
+      "title": "CircleOfFifths",
+      "content": "CircleOfFifths задаёт порядок из 12 мажорных и 12 минорных тональностей. SegmentAngle = 30°. Умеет:\n- находить индекс ключа (IndexOf)\n- выдавать относительную тональность (RelativeKeyMap)\n- строить базовое трезвучие (ступени 0-2-4) по Ionian/Aeolian\n- строить типичную прогрессию I-IV-V-I для выбранного ключа\n\nМажорный порядок: C G D A E B F# Db Ab Eb Bb F.\nМинорный порядок: A E B F# C# G# D# Bb F C G D.",
+      "parentId": "music-engine",
+      "tags": [
+        "circle",
+        "fifths",
+        "keys"
+      ]
+    },
+    "scale-building": {
+      "id": "scale-building",
+      "title": "ScaleBuilder, ScaleSpeller, ModeService",
+      "content": "ScaleBuilder строит 7-нотную гамму по корневой ноте и шаблону интервалов Mode.Intervals, используя ChromaticPalette.\n\nScaleSpeller гарантирует, что каждая буква A–G встречается ровно один раз, выбирая enharmonic при предпочтении бемолей.\n\nModeService возвращает для ключа все 7 ладов с гаммой и аккордами по ступеням.",
+      "parentId": "music-engine",
+      "tags": [
+        "scales",
+        "modes",
+        "spelling"
+      ]
+    },
+    "modes-and-chords": {
+      "id": "modes-and-chords",
+      "title": "ModeCatalog и ModeChords",
+      "content": "ModeCatalog содержит 7 диатонических ладов со шаблонами интервалов:\n- Ionian (Major): 2 2 1 2 2 2 1\n- Dorian, Phrygian, Lydian, Mixolydian, Aeolian (Minor), Locrian\n\nModeChords задаёт аккорды по ступеням для каждого лада, например:\n- Ionian: maj min min maj maj min dim\n- Aeolian: min dim maj min min maj maj",
+      "parentId": "music-engine",
+      "tags": [
+        "modes",
+        "chords"
+      ]
+    },
+    "pitch-utils": {
+      "id": "pitch-utils",
+      "title": "FrequencyCalculator и расширения",
+      "content": "FrequencyCalculator: частота ноты по A4=440 Гц, транспонирование на полтона с корректировкой октавы.\n\nKeyExtensions:\n- Label: для мажора — имя ноты, для минора — +m\n- GetRelative: относительная тональность\n- IsFlat: определяет бемольные тональности по фиксированным спискам\n- MatchesScaleNote/Chord: совпадение со ступенью/аккордом\n\nNoteExtensions: проверка enharmonic-эквивалентности и GetEnharmonic.",
+      "parentId": "music-engine",
+      "tags": [
+        "utils",
+        "extensions",
+        "pitch"
+      ]
+    },
+    "audio": {
+      "id": "audio",
+      "title": "Аудиоподсистема",
+      "content": "Аудио в Circle.Desktop.Audio построено вокруг IAudioCaptureService с событиями SamplesCaptured, ErrorOccurred, DebugMessage. Реализовано несколько backend-захватов; используемый выбирается вручную в MainViewModel. Все реализации конвертируют многоканальные форматы в моно float.",
+      "parentId": "root",
+      "tags": [
+        "audio",
+        "capture",
+        "microphone"
+      ]
+    },
+    "audio-capture": {
+      "id": "audio-capture",
+      "title": "Реализации захвата аудио",
+      "content": "Реализации IAudioCaptureService:\n- MediaCaptureStreamService: WinRT MediaCapture.StartRecordToStreamAsync + InMemoryRandomAccessStream.\n- MediaFrameReaderCaptureService: WinRT MediaCapture + MediaFrameReader.\n- AudioGraphCaptureService: WinRT AudioGraph + frame output node.\n- WasapiAudioCaptureService: NAudio WasapiCapture; fallback на MME WaveInEvent и ASIO.\n- WaveInEventCaptureService: NAudio WASAPI с fallback на MME.\n- BassAudioCaptureService: ManagedBass с перебором WASAPI/DirectSound, форматов и частот.",
+      "parentId": "audio",
+      "tags": [
+        "audio",
+        "capture",
+        "naudio",
+        "bass"
+      ]
+    },
+    "pitch-detection": {
+      "id": "pitch-detection",
+      "title": "PitchDetector",
+      "content": "PitchDetector использует YIN-подобный NSDF-алгоритм:\n- накапливает float-сэмплы в кольцевом буфере\n- вычисляет normalized squared difference\n- ищет пик выше threshold 0.85 с параболической интерполяцией\n- диапазон ~65–1200 Гц\n\nPitchDetector.Analyze переводит частоту в ноту (A4=440) и deviation в cents, возвращая (NoteName, Cents, Frequency).",
+      "parentId": "audio",
+      "tags": [
+        "pitch",
+        "tuner",
+        "algorithm"
+      ]
+    },
+    "tuner": {
+      "id": "tuner",
+      "title": "TunerViewModel и тюнер",
+      "content": "TunerViewModel управляет тюнером:\n- запрашивает доступ к микрофону (RequestAccessAsync)\n- стартует/останавливает захват\n- создаёт PitchDetector с SampleRate сервиса\n- обновляет DetectedNote, DetectedFrequency, Cents, NeedleAngle (clamped -45..45°, 1.5°/cent)\n\nSettingsViewModel позволяет выбрать AudioDevice из AvailableInputDevices и устанавливает его на capture-сервисе.",
+      "parentId": "audio",
+      "tags": [
+        "tuner",
+        "viewmodel",
+        "microphone"
+      ]
+    },
+    "ui": {
+      "id": "ui",
+      "title": "Пользовательский интерфейс",
+      "content": "UI на Avalonia 12 с FluentTheme, тёмная тема по умолчанию. MainWindow — меню (Circle, Tuner, Аккорды) и ContentControl с DataTemplate для CirclePage, Tuner, Songs, Settings. ViewLocator связывает ViewModel -> View по соглашению имён.",
+      "parentId": "root",
+      "tags": [
+        "ui",
+        "avalonia",
+        "views"
+      ]
+    },
+    "main-window": {
+      "id": "main-window",
+      "title": "MainWindow",
+      "content": "MainWindow — основное окно приложения с левым сворачивающимся сайдбаром.\n\n- Разметка: `Grid ColumnDefinitions=\"Auto,*\"` — слева сайдбар, справа ContentControl с DataTemplates для CirclePageViewModel, TunerViewModel, SongsViewModel, WheelOfFortuneViewModel, SettingsViewModel.\n- Сайдбар:\n  - Ширина развёрнутого состояния — 220, свёрнутого — 80 (`IsSidebarExpanded`/`SidebarWidth`).\n  - ToggleButton «☰» прижат к левому краю, фиксированной ширины 80, переключает `IsSidebarExpanded`.\n  - Пункты навигации (Circle / Tuner / Аккорды / Фортуна) — отдельные карточки `ListBoxItem` с фоном, скруглением и отступами; hover и selected выделены цветом.\n  - `ListBox.SelectedIndex` двусторонне привязан к `SelectedTabIndex`, который автоматически меняет `CurrentPage`.\n  - В развёрнутом виде тексты прижаты к левому краю, в свёрнутом — иконки центрируются через `BoolToHorizontalAlignmentConverter`.\n  - Иконки имеют фиксированный размер `24x24`.\n  - Кнопка «⚙ Настройки» внизу сайдбара открывает SettingsWindow.\n- SettingsWindow открывается через событие `SettingsRequested`; при создании устанавливается `WindowStartupLocation = CenterOwner`.\n- Стили: `Assets/Themes/MainWindowStyles.axaml`; конвертер `Converters/BoolToHorizontalAlignmentConverter.cs` добавлен в ресурсы `App.axaml`.\n- Window Classes=\"MainWindow\", Background через `SettingsBackgroundBrush` из темы.",
+      "parentId": "ui",
+      "tags": [
+        "main-window",
+        "navigation",
+        "ui",
+        "theme"
+      ]
+    },
+    "circle-page": {
+      "id": "circle-page",
+      "title": "CirclePageView и панели круга",
+      "content": "CirclePageViewModel объединяет CircleViewModel (визуальный круг) и CirclePanelViewModel (панель ступеней/аккордов).\n\nКомпоновка страницы (DataTemplate в MainWindow): `Grid ColumnDefinitions=\"*,Auto\"` — CircleView в левой/центральной части (HorizontalAlignment=Center), CirclePanelView (таблица ладов) справа.\n\nCircleView.axaml рисует сектора круга. CirclePanelView.axaml отображает ModeRows; заголовок «Circle of Fifths» убран, панель начинается с инфо Selected Note/Relative и таблицы ладов.\n\nВыбор тональности в круге синхронно обновляет SelectedKey в обоих ViewModel.",
+      "parentId": "ui",
+      "tags": [
+        "circle",
+        "views",
+        "panel"
+      ]
+    },
+    "settings-view": {
+      "id": "settings-view",
+      "title": "SettingsWindow и выбор устройства",
+      "content": "SettingsWindow — окно настроек в стиле сайдбара MainWindow.\n\n- Используется `TabControl` с `TabStripPlacement=\"Left\"` и стилем `SettingsTabs`.\n- Шаблон `SettingsTabs`: левая панель с фоном `SettingsCardBackgroundBrush` (как сайдбар), заголовком «Settings» и списком табов; справа карточка контента с отступами.\n- TabItem имеет собственный минимальный ControlTemplate (Border + ContentPresenter) — без индикатора-полоски FluentTheme.\n- Пункты — текстовые карточки (тёмный фон `SettingsBackgroundBrush` на фоне панели, скругление 10, hover — `SettingsBorderBrush`, selected — акцент).\n- `SelectedIndex` двусторонне привязан к `SelectedSettingsTabIndex` в MainViewModel.\n- Вкладки:\n  - Circle — заглушка;\n  - Tuner — `SettingsView` (`DataContext=\"{Binding SettingsViewModel}\"`);\n  - Аккорды — выбор корневой папки (`DataContext=\"{Binding SongsViewModel}\"`), кнопка `ChooseChordLibraryFolder` в code-behind.\n- Окно открывается с `WindowStartupLocation = CenterOwner`.\n- Стили: `SettingsStyles.axaml` (`SettingsTabs`, `SettingsSidebarHeader`, карточка контента, кнопки, поля).",
+      "parentId": "ui",
+      "tags": [
+        "settings",
+        "audio-device",
+        "ui",
+        "theme"
+      ]
+    },
+    "viewmodels": {
+      "id": "viewmodels",
+      "title": "ViewModels",
+      "content": "ViewModels в Circle.Desktop.ViewModels используют CommunityToolkit.Mvvm source generators (ObservableProperty, RelayCommand) и наследуют ViewModelBase. Команды связываются с UI через ICommand.",
+      "parentId": "root",
+      "tags": [
+        "viewmodel",
+        "mvvm"
+      ]
+    },
+    "main-viewmodel": {
+      "id": "main-viewmodel",
+      "title": "MainViewModel",
+      "content": "MainViewModel — корневой DataContext MainWindow и SettingsWindow.\n\n- Создаёт единый `MediaCaptureStreamService`, `TunerViewModel`, `SettingsViewModel`, `SongsViewModel`, `WheelOfFortuneViewModel`, `CirclePageViewModel` (из `CircleViewModel` + `CirclePanelViewModel`).\n- Управляет `CurrentPage` и `SelectedTabIndex` для главного окна (0=Circle, 1=Tuner, 2=Songs, 3=WheelOfFortune).\n- `SelectedSettingsTabIndex` хранит выбранную вкладку в окне настроек.\n- Свойства сайдбара: `IsSidebarExpanded`/`SidebarWidth` (`220` / `80`).\n- Команды: `ShowCircleCommand`, `ShowTunerCommand`, `ShowSongsCommand`, `ShowSettingsCommand`, `ToggleSidebarCommand`.\n- Событие `SettingsRequested` открывает SettingsWindow.",
+      "parentId": "viewmodels",
+      "tags": [
+        "main-viewmodel",
+        "viewmodel",
+        "mvvm",
+        "navigation"
+      ]
+    },
+    "circle-viewmodel": {
+      "id": "circle-viewmodel",
+      "title": "CircleViewModel",
+      "content": "CircleViewModel держит CircleOfFifths и DegreeHighlightBuilder. SelectedKey по умолчанию C major. При изменении SelectedKey обновляются RotationAngle (поворот круга), RelativeKey, DegreeHighlights.\n\nПредоставляет MajorKeys, MinorKeys, SegmentAngle, SelectKeyCommand.",
+      "parentId": "viewmodels",
+      "tags": [
+        "circle",
+        "viewmodel"
+      ]
+    },
+    "circle-panel-viewmodel": {
+      "id": "circle-panel-viewmodel",
+      "title": "CirclePanelViewModel",
+      "content": "CirclePanelViewModel строит ModeRowViewModel для выбранной тональности: 7 ладов (для мажора с Ionian, для минора с Aeolian), ScaleSpeller, chord types.\n\nПоддерживает NoteDuration (мс), анимацию воспроизведения PlayDegree/PlayMode через Dispatcher.UIThread.",
+      "parentId": "viewmodels",
+      "tags": [
+        "circle-panel",
+        "viewmodel",
+        "playback"
+      ]
+    },
+    "songs-viewmodel": {
+      "id": "songs-viewmodel",
+      "title": "SongsViewModel",
+      "content": "SongsViewModel управляет библиотекой песен и редактором:\n- импорт ChordPro и ChordsAboveLyrics\n- создание новой песни, сохранение\n- графический и текстовый редактор\n- автопрокрутка, поиск, фильтр по алфавиту\n- работа с артистами/песнями через ChordLibraryService\n\nСохраняет в song.chordpro + song.tab.",
+      "parentId": "viewmodels",
+      "tags": [
+        "songs",
+        "viewmodel",
+        "editor"
+      ]
+    },
+    "tuner-viewmodel": {
+      "id": "tuner-viewmodel",
+      "title": "TunerViewModel",
+      "content": "TunerViewModel управляет тюнером: запрос доступа к микрофону, старт/стоп захвата, создание PitchDetector с SampleRate, обновление DetectedNote/Frequency/Cents и NeedleAngle. При отказе микрофона открывает ms-settings:privacy-microphone.",
+      "parentId": "viewmodels",
+      "tags": [
+        "tuner",
+        "viewmodel"
+      ]
+    },
+    "settings-viewmodel": {
+      "id": "settings-viewmodel",
+      "title": "SettingsViewModel",
+      "content": "SettingsViewModel отображает AvailableInputDevices и устанавливает SelectedInputDevice на _captureService. При смене устройства обновляется аудиовход, используемый тюнером.",
+      "parentId": "viewmodels",
+      "tags": [
+        "settings",
+        "viewmodel",
+        "audio"
+      ]
+    },
+    "chord-library": {
+      "id": "chord-library",
+      "title": "Библиотека песен и аккордов",
+      "content": "Библиотека аккордов хранится на диске как папки Artist/Song. ChordLibraryService возвращает ChordLibraryItem (ObservableObject с Name и DirectoryPath) для артистов и песен. Путь к корню библиотеки сохраняется в %LocalAppData%/Circle/settings.json (ChordLibraryPath).\n\nПесня ищется по song.chordpro, .chordpro.txt, .txt; табы — song.tab.",
+      "parentId": "root",
+      "tags": [
+        "chord-library",
+        "songs",
+        "files"
+      ]
+    },
+    "song-text-codec": {
+      "id": "song-text-codec",
+      "title": "SongTextCodec",
+      "content": "SongTextCodec парсит/сериализует два формата:\n- ChordPro: [Am]текст\n- ChordsAboveLyrics: аккорды над строкой текста\n\nПоддерживает секции [Куплет], [Припев], [Verse], [Chorus] и повторы xN. Разбирает табулатуры из 6 строк eBGDAE.\n\nСериализует табы в song.tab с маркерами [TAB:n], а текст — в ChordPro с {TAB:n}.",
+      "parentId": "chord-library",
+      "tags": [
+        "chordpro",
+        "parser",
+        "tabs"
+      ]
+    },
+    "song-models": {
+      "id": "song-models",
+      "title": "Модели песен",
+      "content": "SongDocument содержит Title и коллекцию SongLine.\n\nSongLine: Lyrics, Chords (ObservableCollection<SongChord>), SectionTitle/Details/RepeatCount, TabText/TabReference, FontSize.\n\nSongChord: Name, Position, FontSize; вычисляет BlockWidth/PixelPosition.\n\nChordLibraryItem — артист или песня с Name и DirectoryPath.",
+      "parentId": "chord-library",
+      "tags": [
+        "models",
+        "songs"
+      ]
+    },
+    "chord-voicings": {
+      "id": "chord-voicings",
+      "title": "ChordVoicingCatalog",
+      "content": "ChordVoicingCatalog содержит гитарные аппликатуры для аккордов A, Am, B, Bm, C, Cm, D, Dm, E, Em, F, Fm, G, Gm.\n\nФормат нотации: \"6/E:0 5/A:2 ... 1/E:0\" (струна/нота:лад).\n\nChordVoicingPopupViewModel отображает варианты для выбранного аккорда.",
+      "parentId": "chord-library",
+      "tags": [
+        "guitar",
+        "voicings",
+        "chords"
+      ]
+    },
+    "helpers": {
+      "id": "helpers",
+      "title": "Helpers UI",
+      "content": "Вспомогательные классы в Circle.Desktop.Helpers для геометрии круга, подсветки ступеней и цветовой палитры.",
+      "parentId": "root",
+      "tags": [
+        "helpers",
+        "ui"
+      ]
+    },
+    "circle-geometry": {
+      "id": "circle-geometry",
+      "title": "CircleGeometry и CircleView",
+      "content": "CircleView — визуальный круг пятых, фиксированный размер 500x500.\n\n- `CircleView.axaml`: Canvas с `Width=\"500\" Height=\"500\"`.\n- `CircleView.axaml.cs`: рендер через `RenderCircle`/`RenderRingSectors`/`RenderRingLabels`/`RenderDegreeBadges` с использованием констант из `CircleGeometry`.\n- `RenderDegreeBadges` рисует маленькие кружки-бейджи (22px) с римской цифрой ступени (I–VII) на внешнем крае выделенных сегментов. Бейджи цветные (цвет ступени из `RainbowColors`), с белой обводкой.\n- `CircleGeometry.cs`: константы Size=500, CenterX/Y=250, радиусы Outer=220, MajorInner=155, MinorOuter=145, MinorInner=80, OuterLabel=185, InnerLabel=110. Метод `DescribeAnnularSector` строит геометрию сектора.\n- Анимация: `CircleViewModel` использует `DispatcherTimer` (16мс) с easing-функцией `EaseInOutCubic` для плавного вращения с разгоном и торможением. Длительность анимации — 900мс. Время отслеживается через `Stopwatch.GetTimestamp()`. Выбирает кратчайший путь (нормализует разницу в диапазон ±180°). При инициализации (`_isInitialized=false`) угол устанавливается мгновенно без анимации.",
+      "parentId": "helpers",
+      "tags": [
+        "circle",
+        "geometry",
+        "ui",
+        "animation",
+        "badges"
+      ]
+    },
+    "degree-highlight": {
+      "id": "degree-highlight",
+      "title": "DegreeHighlightBuilder",
+      "content": "DegreeHighlightBuilder для выбранной тональности строит словарь note -> DegreeHighlight: ступень, кольцо (major/minor по chord type), цвет, нота. Использует ScaleSpeller и ModeService.",
+      "parentId": "helpers",
+      "tags": [
+        "highlight",
+        "degrees",
+        "colors"
+      ]
+    },
+    "rainbow-colors": {
+      "id": "rainbow-colors",
+      "title": "RainbowColors",
+      "content": "RainbowColors — палитра для 7 ступеней (I–VII): красный, оранжевый, жёлтый, зелёный, циан, синий, фиолетовый, осветлённые на 50% смешиванием с белым. DegreeLabels: I, II, III, IV, V, VI, VII.",
+      "parentId": "helpers",
+      "tags": [
+        "colors",
+        "palette",
+        "degrees"
+      ]
+    },
+    "dotnet-performance": {
+      "id": "dotnet-performance",
+      "title": ".NET 10 — производительность",
+      "content": "Ключевые практики для быстрого и экономичного кода на .NET 10/C# 13+:\n\n- Escape analysis & stack allocation: JIT .NET 10 активнее размещает объекты/массивы на стеке, если они не «убегают» из метода. Пиши идиоматичный C# — интерфейсы, foreach, лямбды — JIT умеет их деоптимизировать.\n- DATAS (Dynamic Adaptation To Application Sizes): Server GC по умолчанию адаптирует размер кучи. Настраивай через GCDynamicAdaptationMode/GCDTargetTCP/GCDGen0GrowthPercent при необходимости.\n- Span<T>/ReadOnlySpan<T> и Memory<T> для работы с буферами без лишних аллокаций в hot paths.\n- ArrayPool<T>.Shared для временных массивов; избегай LINQ/аллокаций в критических циклах.\n- Zero-allocation: структуры + readonly, кэширование, object pooling. Профилируй DotTrace/dotMemory/BenchmarkDotNet.\n- Новое в JIT: лучший inlining, девиртуализация массивов, оптимизация try-finally, 3-opt layout.\n\nИсточники: devblogs.microsoft.com/dotnet/performance-improvements-in-net-10, learn.microsoft.com/runtime-whats-new.",
+      "parentId": "root",
+      "tags": [
+        "dotnet",
+        "net10",
+        "performance",
+        "gc",
+        "span",
+        "jit"
+      ]
+    },
+    "coding-style": {
+      "id": "coding-style",
+      "title": "Кодстайл C# для проекта",
+      "content": "Соглашения, ориентированные на современный C# 13/.NET 10. Подробное описание — `csharp/CODING_STYLE.md`.\n\nКратко:\n- Именование: PascalCase для типов/методов/свойств; camelCase для параметров и локальных переменных; интерфейсы с префиксом I.\n- File-scoped namespaces (`namespace Foo;`).\n- `sealed` по умолчанию для внутренних/реализационных классов, если наследование не нужно.\n- `record`/`record struct` для DTO и value-like неизменяемых типов.\n- `var` — только если тип очевиден из правой части; иначе пиши тип явно.\n- Nullable reference types включены (`<Nullable>enable</Nullable>`); избегай `!` — исправляй nullable-контракт или используй `ArgumentNullException.ThrowIfNull`.\n- Primary constructors — только на простых типах; избегай, если параметры захватываются в несколько методов.\n- Публичные полцы мутабельны: используй init-only свойства, не expose mutable fields.\n- async/await для I/O; `ConfigureAwait(false)` в библиотечном коде; избегай `async void`.\n- Строки: интерполяция для коротких, raw string literals для многострочных, StringBuilder в циклах/больших текстах.\n- Исключения: лови только обрабатываемые типы; не лови общий Exception без фильтра.\n- Инструменты: EditorConfig (`csharp/.editorconfig`) + .NET code analysis + StyleCop/ analyzers, автоформат.\n- Avalonia UI: CompiledBindings по умолчанию, OneWay для read-only, плоское визуальное дерево, анимации через RenderTransform/Opacity, виртуализация списков.\n- .NET 10 perf: идиоматичный код, Span/Memory, ArrayPool, zero-allocation в hot paths, профилирование.\n\nИсточники: learn.microsoft.com/dotnet/csharp/fundamentals/coding-style/coding-conventions, github dotnet/runtime/roslyn style, devblogs.microsoft.com/dotnet/performance-improvements-in-net-10, docs.avaloniaui.net.",
+      "parentId": "root",
+      "tags": [
+        "csharp",
+        "style",
+        "conventions",
+        "net10",
+        "editorconfig",
+        "nullable",
+        "avalonia"
+      ]
+    },
+    "avalonia-performance": {
+      "id": "avalonia-performance",
+      "title": "Avalonia — оптимизация UI",
+      "content": "Рекомендации по производительности и стилю UI на Avalonia 11/12, применённые в Circle.Desktop:\n\n- CompiledBindings: включён `<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>` в `Circle.Desktop.csproj`. Все корневые XAML должны иметь `x:DataType`; исключения — `ReflectionBinding`.\n- Привязки: используй OneWay для read-only данных, уменьшай количество bindings и converters.\n- Виртуализация: для больших списков — VirtualizingStackPanel/ItemsRepeater/TreeDataGrid с constrained height (не в StackPanel с infinite height).\n- Визуальное дерево: максимально плоское, избегай глубокой вложенности и «тяжёлых» контейнеров.\n- Анимации: не анимируй Width/Height/Margin/Padding/FontSize — они вызывают layout pass; используй RenderTransform/Opacity/Clip, которые GPU-composite.\n- Панели: выбирай подходящую панель (Grid, Canvas, DockPanel) вместо множества вложенных StackPanel.\n- Стили: предпочитай ThemeVariant и FluentTheme resources; выноси общие setter'ы в Application.Styles или ThemeDictionaries; избегай широких селекторов, замедляющих Style Matching.\n- Профилирование: Avalonia Developer Tools (F12) → profiler — Style Matching, Layout, Render.\n- Шаблоны: упрощай DataTemplates, избегай сложной логики в bindings.\n\nИсточники: docs.avaloniaui.net, Avalonia blog 10 performance tips.",
+      "parentId": "ui",
+      "tags": [
+        "avalonia",
+        "ui",
+        "performance",
+        "compiled-bindings",
+        "virtualization",
+        "style"
+      ]
+    },
+    "undefined": {
+      "id": "undefined",
+      "title": "WheelOfFortune — колесо фортуны",
+      "content": "WheelOfFortune — фон на уровне MainWindow и компактная панель Fortune.\n\n- `Background-WF.png` перенесён из `WheelOfFortuneView` в корневой Grid `MainWindow.axaml`, с `Grid.ColumnSpan=2` и `IsVisible={Binding IsFortuneSelected}`. Фон теперь является фоном всего окна приложения только при открытой вкладке Fortune, а не частью Fortune Canvas.\n- В `MainViewModel` добавлено `IsFortuneSelected`, уведомляемое при изменении `SelectedTabIndex`.\n- Убран дублирующий Image-фон из `WheelOfFortuneView.axaml`.\n- `WheelOfFortuneView` получил `IsFortuneControlsExpanded` и `ToggleFortuneControlsCommand`. Заголовок и кнопка запуска остаются всегда; в TeamPick также остаются списки команд. При сворачивании скрываются селекторы, управление списками, список участников, режим игры и кнопки команд.\n- Добавлен `BoolToVerticalAlignmentConverter`: раскрытая панель растягивается, свернутая прижимается к низу и занимает только содержимое.\n- Внешний Margin FortuneView убран; фон доходит до краёв области MainWindow.\n- Сборка: `dotnet build Circle.Desktop/Circle.Desktop.csproj`, 0 ошибок, 5 прежних предупреждений.",
+      "parentId": "ui",
+      "tags": [
+        "wheel-of-fortune",
+        "main-window",
+        "background",
+        "collapsible-panel",
+        "navigation",
+        "ui"
+      ]
+    }
+  }
+}

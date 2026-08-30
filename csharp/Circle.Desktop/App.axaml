@@ -1,0 +1,80 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Circle.Desktop.App"
+             xmlns:local="using:Circle.Desktop"
+             xmlns:converters="using:Circle.Desktop.Converters"
+             RequestedThemeVariant="Dark">
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <converters:BoolToHorizontalAlignmentConverter x:Key="SidebarContentAlignmentConverter"
+                                                          TrueValue="Left"
+                                                          FalseValue="Center" />
+            <converters:BoolToVerticalAlignmentConverter x:Key="FortunePanelVerticalAlignmentConverter"
+                                                          TrueValue="Stretch"
+                                                          FalseValue="Bottom" />
+            <converters:PathToBitmapConverter x:Key="PathToBitmapConverter" />
+            <converters:StringEqualsConverter x:Key="StringEqualsConverter" />
+            <converters:ActiveListBackgroundConverter x:Key="ActiveListBackgroundConverter" />
+            <converters:ActiveListBorderConverter x:Key="ActiveListBorderConverter" />
+        </ResourceDictionary>
+    </Application.Resources>
+
+    <Application.DataTemplates>
+        <local:ViewLocator />
+    </Application.DataTemplates>
+
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://Circle.Desktop/Assets/Themes/SettingsStyles.axaml" />
+        <StyleInclude Source="avares://Circle.Desktop/Assets/Themes/MainWindowStyles.axaml" />
+        <Style Selector="ScrollViewer">
+            <Setter Property="AllowAutoHide" Value="False" />
+        </Style>
+        <Style Selector="ScrollBar[Orientation=Vertical]">
+            <Setter Property="Width" Value="20" />
+        </Style>
+        <Style Selector="ScrollBar:pointerover[Orientation=Vertical]">
+            <Setter Property="Width" Value="20" />
+        </Style>
+        <Style Selector="ScrollBar:pressed[Orientation=Vertical]">
+            <Setter Property="Width" Value="20" />
+        </Style>
+        <Style Selector="ScrollBar[Orientation=Horizontal]">
+            <Setter Property="Height" Value="20" />
+        </Style>
+        <Style Selector="ScrollBar:pointerover[Orientation=Horizontal]">
+            <Setter Property="Height" Value="20" />
+        </Style>
+        <Style Selector="ScrollBar:pressed[Orientation=Horizontal]">
+            <Setter Property="Height" Value="20" />
+        </Style>
+        <Style Selector="ScrollBar /template/ RepeatButton">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="ScrollBar[Orientation=Vertical] /template/ Thumb">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="MinWidth" Value="16" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Background" Value="#4b5563" />
+        </Style>
+        <Style Selector="ScrollBar:pointerover[Orientation=Vertical] /template/ Thumb">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="MinWidth" Value="16" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Background" Value="#6b7280" />
+        </Style>
+        <Style Selector="ScrollBar[Orientation=Horizontal] /template/ Thumb">
+            <Setter Property="Height" Value="16" />
+            <Setter Property="MinHeight" Value="16" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Background" Value="#4b5563" />
+        </Style>
+        <Style Selector="ScrollBar:pointerover[Orientation=Horizontal] /template/ Thumb">
+            <Setter Property="Height" Value="16" />
+            <Setter Property="MinHeight" Value="16" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Background" Value="#6b7280" />
+        </Style>
+    </Application.Styles>
+</Application>

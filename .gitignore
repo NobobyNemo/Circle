@@ -1,0 +1,25 @@
+# .NET build output
+**/bin/
+**/obj/
+
+# Visual Studio user data
+**/.vs/
+
+# Node.js dependencies and compiled output
+**/node_modules/
+**/dist/
+
+# Packaging output
+**/AppPackages/
+**/Staging/
+
+# IDE user files
+*.user
+*.suo
+
+# Signing certificates
+*.pfx
+
+# Local IDE metadata
+/.windsurf/
+

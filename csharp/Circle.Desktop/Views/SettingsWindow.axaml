@@ -1,0 +1,46 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Circle.Desktop.ViewModels"
+        xmlns:v="using:Circle.Desktop.Views"
+        x:Class="Circle.Desktop.Views.SettingsWindow"
+        x:DataType="vm:MainViewModel"
+        Classes="SettingsWindow"
+        Title="Settings"
+        Width="720"
+        Height="480"
+        MinWidth="560"
+        MinHeight="360">
+    <Design.DataContext>
+        <vm:MainViewModel />
+    </Design.DataContext>
+
+    <TabControl Classes="SettingsTabs"
+                TabStripPlacement="Left"
+                SelectedIndex="{Binding SelectedSettingsTabIndex, Mode=TwoWay}">
+        <TabItem Header="Circle">
+            <StackPanel Spacing="12">
+                <TextBlock Text="Circle of Fifths" Classes="SettingsHeader" />
+                <TextBlock Text="Общие настройки приложения пока недоступны."
+                           Classes="SettingsDescription" />
+            </StackPanel>
+        </TabItem>
+        <TabItem Header="Tuner">
+            <v:SettingsView DataContext="{Binding SettingsViewModel}" />
+        </TabItem>
+        <TabItem Header="Аккорды">
+            <StackPanel Spacing="16" DataContext="{Binding SongsViewModel}">
+                <TextBlock Text="Библиотека аккордов" Classes="SettingsHeader" />
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Корневая папка с исполнителями и песнями"
+                               Classes="SettingsLabel" />
+                    <TextBox Text="{Binding LibraryRootPath}"
+                             Classes="SettingsReadOnly"
+                             PlaceholderText="Папка не выбрана" />
+                </StackPanel>
+                <Button Content="Выбрать папку..."
+                        Classes="SettingsAction"
+                        Click="ChooseChordLibraryFolder" />
+            </StackPanel>
+        </TabItem>
+    </TabControl>
+</Window>

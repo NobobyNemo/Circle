@@ -1,0 +1,227 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Styles.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Dark">
+                    <Color x:Key="SettingsBackgroundColor">#0b0f19</Color>
+                    <Color x:Key="SettingsCardBackgroundColor">#151b2b</Color>
+                    <Color x:Key="SettingsBorderColor">#2a3142</Color>
+                    <Color x:Key="SettingsHeaderForegroundColor">#f8fafc</Color>
+                    <Color x:Key="SettingsMutedForegroundColor">#94a3b8</Color>
+                    <Color x:Key="SettingsAccentColor">#6366f1</Color>
+                    <Color x:Key="SettingsAccentHoverColor">#4f46e5</Color>
+                    <Color x:Key="SettingsAccentForegroundColor">#ffffff</Color>
+
+                    <SolidColorBrush x:Key="SettingsBackgroundBrush" Color="{StaticResource SettingsBackgroundColor}" />
+                    <SolidColorBrush x:Key="SettingsCardBackgroundBrush" Color="{StaticResource SettingsCardBackgroundColor}" />
+                    <SolidColorBrush x:Key="SettingsBorderBrush" Color="{StaticResource SettingsBorderColor}" />
+                    <SolidColorBrush x:Key="SettingsHeaderForegroundBrush" Color="{StaticResource SettingsHeaderForegroundColor}" />
+                    <SolidColorBrush x:Key="SettingsMutedForegroundBrush" Color="{StaticResource SettingsMutedForegroundColor}" />
+                    <SolidColorBrush x:Key="SettingsAccentBrush" Color="{StaticResource SettingsAccentColor}" />
+                    <SolidColorBrush x:Key="SettingsAccentHoverBrush" Color="{StaticResource SettingsAccentHoverColor}" />
+                    <SolidColorBrush x:Key="SettingsAccentForegroundBrush" Color="{StaticResource SettingsAccentForegroundColor}" />
+                </ResourceDictionary>
+
+                <ResourceDictionary x:Key="Light">
+                    <Color x:Key="SettingsBackgroundColor">#f8fafc</Color>
+                    <Color x:Key="SettingsCardBackgroundColor">#ffffff</Color>
+                    <Color x:Key="SettingsBorderColor">#e2e8f0</Color>
+                    <Color x:Key="SettingsHeaderForegroundColor">#0f172a</Color>
+                    <Color x:Key="SettingsMutedForegroundColor">#64748b</Color>
+                    <Color x:Key="SettingsAccentColor">#4f46e5</Color>
+                    <Color x:Key="SettingsAccentHoverColor">#4338ca</Color>
+                    <Color x:Key="SettingsAccentForegroundColor">#ffffff</Color>
+
+                    <SolidColorBrush x:Key="SettingsBackgroundBrush" Color="{StaticResource SettingsBackgroundColor}" />
+                    <SolidColorBrush x:Key="SettingsCardBackgroundBrush" Color="{StaticResource SettingsCardBackgroundColor}" />
+                    <SolidColorBrush x:Key="SettingsBorderBrush" Color="{StaticResource SettingsBorderColor}" />
+                    <SolidColorBrush x:Key="SettingsHeaderForegroundBrush" Color="{StaticResource SettingsHeaderForegroundColor}" />
+                    <SolidColorBrush x:Key="SettingsMutedForegroundBrush" Color="{StaticResource SettingsMutedForegroundColor}" />
+                    <SolidColorBrush x:Key="SettingsAccentBrush" Color="{StaticResource SettingsAccentColor}" />
+                    <SolidColorBrush x:Key="SettingsAccentHoverBrush" Color="{StaticResource SettingsAccentHoverColor}" />
+                    <SolidColorBrush x:Key="SettingsAccentForegroundBrush" Color="{StaticResource SettingsAccentForegroundColor}" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Styles.Resources>
+
+    <Design.PreviewWith>
+        <Border Padding="20" Background="{DynamicResource SettingsBackgroundBrush}">
+            <TabControl Classes="SettingsTabs" Width="400" Height="250">
+                <TabItem Header="General">
+                    <TextBlock Text="Preview" Classes="SettingsHeader" />
+                </TabItem>
+                <TabItem Header="Audio">
+                    <TextBlock Text="Audio" Classes="SettingsHeader" />
+                </TabItem>
+            </TabControl>
+        </Border>
+    </Design.PreviewWith>
+
+    <Style Selector="Window.SettingsWindow">
+        <Setter Property="Background" Value="{DynamicResource SettingsBackgroundBrush}" />
+        <Setter Property="TransparencyLevelHint" Value="None" />
+    </Style>
+
+    <Style Selector="TabControl.SettingsTabs">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid ColumnDefinitions="Auto,*">
+                    <Border Grid.Column="0"
+                            Background="{DynamicResource SettingsCardBackgroundBrush}"
+                            BorderBrush="{DynamicResource SettingsBorderBrush}"
+                            BorderThickness="0,0,1,0"
+                            Padding="12,16">
+                        <Grid RowDefinitions="Auto,*">
+                            <TextBlock Grid.Row="0"
+                                       Text="Settings"
+                                       Classes="SettingsSidebarHeader" />
+                            <ItemsPresenter Grid.Row="1"
+                                            Name="PART_ItemsPresenter"
+                                            ItemsPanel="{TemplateBinding ItemsPanel}" />
+                        </Grid>
+                    </Border>
+                    <Border Grid.Column="1"
+                            Background="{DynamicResource SettingsCardBackgroundBrush}"
+                            BorderBrush="{DynamicResource SettingsBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="24"
+                            Margin="16">
+                        <ContentPresenter Name="PART_SelectedContentHost"
+                                          Content="{TemplateBinding SelectedContent}"
+                                          ContentTemplate="{TemplateBinding SelectedContentTemplate}"
+                                          HorizontalContentAlignment="Stretch"
+                                          VerticalContentAlignment="Stretch" />
+                    </Border>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+        <Setter Property="ItemsPanel">
+            <ItemsPanelTemplate>
+                <StackPanel Orientation="Vertical" />
+            </ItemsPanelTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="TabControl.SettingsTabs > TabItem">
+        <Setter Property="Background" Value="{DynamicResource SettingsBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SettingsMutedForegroundBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="Margin" Value="0,4" />
+        <Setter Property="MinWidth" Value="160" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="PART_LayoutRoot"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Name="PART_ContentPresenter"
+                                      Content="{TemplateBinding Header}"
+                                      ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      TextElement.FontSize="{TemplateBinding FontSize}"
+                                      TextElement.FontWeight="{TemplateBinding FontWeight}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Foreground" Duration="0:0:0.15" />
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="TabControl.SettingsTabs > TabItem:pointerover">
+        <Setter Property="Foreground" Value="{DynamicResource SettingsHeaderForegroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SettingsBorderBrush}" />
+    </Style>
+
+    <Style Selector="TabControl.SettingsTabs > TabItem:selected">
+        <Setter Property="Foreground" Value="{DynamicResource SettingsAccentForegroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SettingsAccentBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="TabControl.SettingsTabs > TabItem:selected:pointerover">
+        <Setter Property="Background" Value="{DynamicResource SettingsAccentHoverBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.SettingsSidebarHeader">
+        <Setter Property="FontSize" Value="22" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{DynamicResource SettingsHeaderForegroundBrush}" />
+        <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+
+    <Style Selector="TextBlock.SettingsHeader">
+        <Setter Property="FontSize" Value="22" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{DynamicResource SettingsHeaderForegroundBrush}" />
+        <Setter Property="Margin" Value="0,0,0,16" />
+    </Style>
+
+    <Style Selector="TextBlock.SettingsDescription">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="{DynamicResource SettingsMutedForegroundBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="TextBlock.SettingsLabel">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource SettingsHeaderForegroundBrush}" />
+        <Setter Property="Margin" Value="0,0,0,6" />
+    </Style>
+
+    <Style Selector="Button.SettingsAction">
+        <Setter Property="Background" Value="{DynamicResource SettingsAccentBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SettingsAccentForegroundBrush}" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.15" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button.SettingsAction:pointerover">
+        <Setter Property="Background" Value="{DynamicResource SettingsAccentHoverBrush}" />
+    </Style>
+
+    <Style Selector="ComboBox.SettingsComboBox">
+        <Setter Property="MinHeight" Value="36" />
+        <Setter Property="MinWidth" Value="320" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+
+    <Style Selector="TextBox.SettingsReadOnly">
+        <Setter Property="MinHeight" Value="36" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="IsReadOnly" Value="True" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+
+</Styles>
