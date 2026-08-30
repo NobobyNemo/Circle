@@ -4,7 +4,8 @@
       "Exec(dotnet build)",
       "Exec(git log)",
       "Exec(git diff)",
-      "Exec(git add)"
+      "Exec(git add)",
+      "Exec(git commit)"
     ]
   }
 }
