@@ -39,21 +39,29 @@
                     Opacity="0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Padding="32,20"
-                    CornerRadius="16"
-                    Background="#1e293b"
-                    BorderBrush="#fde047"
-                    BorderThickness="2"
+                    Width="520"
+                    Height="180"
+                    Background="Transparent"
+                    BorderThickness="0"
                     Margin="0,0,0,60">
-                <TextBlock x:Name="ResultText"
-                           Text="{Binding Result}"
-                           FontSize="42"
-                           FontWeight="Bold"
-                           Foreground="#fde047"
-                           HorizontalAlignment="Center"
-                           TextAlignment="Center"
-                           MaxWidth="400"
-                           TextWrapping="Wrap" />
+                <Grid>
+                    <Image Source="avares://Circle.Desktop/Assets/PopUps/Horizontal/Popup_Horizontal.png"
+                           Stretch="Fill"
+                           IsHitTestVisible="False" />
+                    <Border Padding="32,20"
+                            Background="Transparent">
+                        <TextBlock x:Name="ResultText"
+                                   Text="{Binding Result}"
+                                   FontSize="42"
+                                   FontWeight="Bold"
+                                   Foreground="#fde047"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Center"
+                                   MaxWidth="400"
+                                   TextWrapping="Wrap" />
+                    </Border>
+                </Grid>
             </Border>
 
             <!-- CS:GO-style strip result popup -->
@@ -61,27 +69,24 @@
                     IsVisible="{Binding IsStripResultPopupOpen}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
+                    Width="360"
+                    Height="480"
                     Padding="0"
-                    CornerRadius="16"
-                    Background="#0f172a"
-                    BorderBrush="{Binding StripResultColor}"
-                    BorderThickness="4"
-                    Margin="0,0,0,40"
-                    MinWidth="280"
-                    MaxWidth="420">
-                <StackPanel Spacing="0">
-                    <!-- Rarity color bar at top -->
-                    <Border Background="{Binding StripResultColor}"
-                            Height="6"
-                            CornerRadius="16,16,0,0" />
-
-                    <Border Padding="28,24">
-                        <StackPanel Spacing="16">
-                            <TextBlock Text="🎉 Выпало!"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Margin="0,0,0,40">
+                <Grid>
+                    <Image Source="avares://Circle.Desktop/Assets/PopUps/Vertical/PopUp_Vertical.png"
+                           Stretch="Fill"
+                           IsHitTestVisible="False" />
+                    <Border Padding="32,54,32,42"
+                            Background="Transparent">
+                        <StackPanel Spacing="16" VerticalAlignment="Center">
+                            <!-- <TextBlock Text="🎉 Выпало!"
                                        FontSize="16"
                                        FontWeight="SemiBold"
                                        Foreground="#94a3b8"
-                                       HorizontalAlignment="Center" />
+                                       HorizontalAlignment="Center" /> -->
 
                             <!-- Item image -->
                             <Image x:Name="StripResultImage"
@@ -100,7 +105,7 @@
                                        HorizontalAlignment="Center"
                                        TextAlignment="Center"
                                        TextWrapping="Wrap"
-                                       MaxWidth="360" />
+                                       MaxWidth="280" />
 
                             <!-- OK button -->
                             <Button Content="OK"
@@ -110,9 +115,24 @@
                                     FontSize="16"
                                     FontWeight="Bold"
                                     Margin="0,4,0,0" />
+
+                            <!-- Rarity glow strip -->
+                            <Border Height="4"
+                                    Width="180"
+                                    CornerRadius="2"
+                                    HorizontalAlignment="Center"
+                                    Background="{Binding StripResultColor, Converter={StaticResource StringToBrushConverter}}">
+                                <Border.Effect>
+                                    <DropShadowEffect OffsetX="0"
+                                                      OffsetY="0"
+                                                      BlurRadius="12"
+                                                      Color="{Binding StripResultColor, Converter={StaticResource StringToColorConverter}}"
+                                                      Opacity="0.8" />
+                                </Border.Effect>
+                            </Border>
                         </StackPanel>
                     </Border>
-                </StackPanel>
+                </Grid>
             </Border>
         </Grid>
 

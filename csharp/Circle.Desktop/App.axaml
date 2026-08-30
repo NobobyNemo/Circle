@@ -14,6 +14,8 @@
                                                           TrueValue="Stretch"
                                                           FalseValue="Bottom" />
             <converters:PathToBitmapConverter x:Key="PathToBitmapConverter" />
+            <converters:StringToColorConverter x:Key="StringToColorConverter" />
+            <converters:StringToBrushConverter x:Key="StringToBrushConverter" />
             <converters:StringEqualsConverter x:Key="StringEqualsConverter" />
             <converters:ActiveListBackgroundConverter x:Key="ActiveListBackgroundConverter" />
             <converters:ActiveListBorderConverter x:Key="ActiveListBorderConverter" />

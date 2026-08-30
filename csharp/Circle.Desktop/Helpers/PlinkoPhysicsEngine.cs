@@ -5,8 +5,8 @@ public sealed class PlinkoPhysicsEngine
 {
     public const int Rows = 9;
     public const double TimeStep = 0.004;
-    public const double PegCollisionRadius = 0.29;
-    public const double SpringCollisionRadius = 0.34;
+    public const double PegCollisionRadius = 0.11;
+    public const double SpringCollisionRadius = 0.13;
     public const double BucketDepth = 0.3;
     public const double PlayfieldBottom = 1.0 + BucketDepth;
 
@@ -67,7 +67,8 @@ public sealed class PlinkoPhysicsEngine
                     var dx = closestX - obstacle.X;
                     var dy = closestY - obstacle.Y * n;
                     var distance = Math.Sqrt(dx * dx + dy * dy);
-                    if (distance >= obstacle.Radius)
+                    var collisionRadius = obstacle.Radius + ball.Radius;
+                    if (distance >= collisionRadius)
                         continue;
 
                     var normalX = dx / Math.Max(distance, 0.001);
@@ -80,8 +81,8 @@ public sealed class PlinkoPhysicsEngine
                         springCooldown.TryGetValue(obstacle, out var cooldown) && cooldown > 0)
                         continue;
 
-                    x = obstacle.X + normalX * obstacle.Radius;
-                    y = obstacle.Y + normalY * obstacle.Radius / n;
+                    x = obstacle.X + normalX * collisionRadius;
+                    y = obstacle.Y + normalY * collisionRadius / n;
 
                     if (obstacle.Kind == Kind.Spring)
                     {

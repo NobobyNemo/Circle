@@ -299,10 +299,10 @@ public partial class WheelOfFortuneViewModel : ViewModelBase
 
     public string SpinButtonText => GameType switch
     {
-        FortuneGameType.Wheel => "🎯 Крутить!",
-        FortuneGameType.Plinko => "🔻 Бросить шарик!",
-        FortuneGameType.Strip => "🎁 Открыть кейс!",
-        _ => "🎯 Крутить!"
+        FortuneGameType.Wheel => "Крутить!",
+        FortuneGameType.Plinko => "Бросить гранату",
+        FortuneGameType.Strip => "Открыть кейс",
+        _ => "Крутить!"
     };
 
     partial void OnWheelItemsChanged(ObservableCollection<WheelItem> value)
@@ -912,7 +912,7 @@ public partial class WheelOfFortuneViewModel : ViewModelBase
         _plinkoBinOrder = Enumerable.Range(0, n).ToArray();
         ShufflePlinkoBins(random);
 
-        PlinkoSourceIndex = random.Next(n);
+        PlinkoSourceIndex = n > 2 ? random.Next(1, n - 1) : random.Next(n);
         _plinkoSelectionStart = PlinkoSelectionOffset;
         _plinkoSelectionDistance = n * random.Next(5, 9) +
                                    ((PlinkoSourceIndex - _plinkoSelectionStart) % n + n) % n;

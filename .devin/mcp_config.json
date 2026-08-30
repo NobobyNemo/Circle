@@ -2,7 +2,7 @@
   "mcpServers": {
     "circle-knowledge": {
       "command": "node",
-      "args": ["C:/Users/win/Desktop/circle/mcp-knowledge/dist/index.js"]
+      "args": ["F:/Circle/mcp-knowledge/dist/index.js"]
     }
   }
 }
